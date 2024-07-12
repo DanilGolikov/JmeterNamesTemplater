@@ -1,5 +1,7 @@
 package com.example.jmeter.plugin.gui;
 
+import com.example.jmeter.plugin.PrintTreeModel;
+import com.example.jmeter.plugin.RenameTreeElements;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.MainFrame;
 import org.apache.jmeter.gui.util.JMeterToolBar;
@@ -15,11 +17,13 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import static com.example.jmeter.plugin.utils.RenameUtils.CheckCreateRenameConfig;
+
 public class RenameElementsMenuItem extends JMenuItem implements ActionListener {
     private static final Logger log = LoggerFactory.getLogger(RenameElementsMenuItem.class);
 
     public RenameElementsMenuItem() {
-        super("Rename elements", new ImageIcon(RenameElementsMenuItem.class.getResource("/bug.png")));
+        super("Rename elements", new ImageIcon(RenameElementsMenuItem.class.getResource("/renameIcon16.png")));
         addActionListener(this);
         addToolbarIcon();
     }
@@ -49,7 +53,7 @@ public class RenameElementsMenuItem extends JMenuItem implements ActionListener 
     }
 
     private Component getToolbarButton() {
-        JButton button = new JButton(new ImageIcon(RenameElementsMenuItem.class.getResource("/bug22.png")));
+        JButton button = new JButton(new ImageIcon(RenameElementsMenuItem.class.getResource("/renameIcon22.png")));
         button.setToolTipText("MyCustomButton");
         button.addActionListener(this);
         return button;
@@ -57,6 +61,7 @@ public class RenameElementsMenuItem extends JMenuItem implements ActionListener 
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        System.out.println("RenameElementsMenuItem.actionPerformed");
+        CheckCreateRenameConfig();
+        new RenameTreeElements();
     }
 }
