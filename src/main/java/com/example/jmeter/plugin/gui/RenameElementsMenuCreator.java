@@ -1,6 +1,5 @@
 package com.example.jmeter.plugin.gui;
 
-import com.example.jmeter.plugin.RenameTreeElements;
 import org.apache.jmeter.gui.plugin.MenuCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

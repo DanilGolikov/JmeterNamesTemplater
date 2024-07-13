@@ -1,7 +1,6 @@
 package com.example.jmeter.plugin.gui;
 
-import com.example.jmeter.plugin.PrintTreeModel;
-import com.example.jmeter.plugin.RenameTreeElements;
+import com.example.jmeter.plugin.RunThroughTree;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.MainFrame;
 import org.apache.jmeter.gui.util.JMeterToolBar;
@@ -62,6 +61,6 @@ public class RenameElementsMenuItem extends JMenuItem implements ActionListener 
     @Override
     public void actionPerformed(ActionEvent e) {
         CheckCreateRenameConfig();
-        new RenameTreeElements();
+        new RunThroughTree();
     }
 }

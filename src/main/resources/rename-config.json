@@ -1,0 +1,10 @@
+{
+  "variables": {
+    "test": null
+  },
+  "NodesProperties": {
+    "HTTPSamplerProxy": {
+      "template": ""
+    }
+  }
+}
