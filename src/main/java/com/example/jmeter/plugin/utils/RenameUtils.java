@@ -1,8 +1,6 @@
 package com.example.jmeter.plugin.utils;
 
 import com.example.jmeter.plugin.RunThroughTree;
-import org.apache.jmeter.gui.GuiPackage;
-import org.apache.jmeter.gui.tree.JMeterTreeNode;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,10 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
 import java.util.Map;
-
-import static com.example.jmeter.plugin.utils.GetNodeData.*;
 
 public class RenameUtils {
 
@@ -46,15 +41,15 @@ public class RenameUtils {
 
 
         } catch (IOException | URISyntaxException e) {
-            throw new RuntimeException(e);
+            System.out.println(e);;
         }
     }
 
-    public static String replaceVariables(String template, Map<String, String> variables) {
+    public static String replaceVariables(String str, Map<String, String> variables) {
         for (Map.Entry<String, String> entry : variables.entrySet()) {
             String placeholder = "#{" + entry.getKey() + "}";
-            template = template.replace(placeholder, entry.getValue());
+            str = str.replace(placeholder, entry.getValue());
         }
-        return template;
+        return str;
     }
 }

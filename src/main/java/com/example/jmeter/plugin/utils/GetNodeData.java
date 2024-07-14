@@ -7,9 +7,15 @@ import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.testelement.TestElement;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class GetNodeData {
-    public static void getCurrentNodeData(String prefix, JMeterTreeNode node, Map<String, String> map) {
+
+    public static String getNodeType(JMeterTreeNode node) {
+        return node.getTestElement().getClass().getSimpleName();
+    }
+
+    public static void getNodeData(String prefix, JMeterTreeNode node, Map<String, String> map) {
         TestElement nodeTestElement = node.getTestElement();
 
         switch (nodeTestElement.getClass().getSimpleName()) {
@@ -24,10 +30,6 @@ public class GetNodeData {
                 break;
             default:
         }
-    }
-
-    public static void getParentNodeData(JMeterTreeNode node, Map<String, String> map) {
-        getCurrentNodeData("parent.", (JMeterTreeNode) node.getParent(), map);
     }
 
     public static void getHttpSamplerData(String prefix, HTTPSamplerProxy httpSampler, Map<String, String> map) {
@@ -49,6 +51,7 @@ public class GetNodeData {
     public static void getModuleControllerDate(String prefix, ModuleController moduleController, Map<String, String> map) {
         map.put(prefix + "name", moduleController.getName());
         map.put(prefix + "comment", moduleController.getComment());
-        map.put(prefix + "selectedElementName", moduleController.getSelectedNode().getName());
+        JMeterTreeNode selectedNode = moduleController.getSelectedNode();
+        map.put(prefix + "selectedElementName", (selectedNode == null) ? "" : selectedNode.getName());
     }
 }
