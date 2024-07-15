@@ -1,5 +1,6 @@
 package com.example.jmeter.plugin;
 
+import com.example.jmeter.plugin.utils.customCounter;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeModel;
@@ -18,20 +19,32 @@ import static com.example.jmeter.plugin.utils.RenameUtils.replaceVariables;
 public class RunThroughTree {
 
     public static JsonNode renameConfig;
+    public static Map<String, customCounter> counters = new HashMap<>();
 
     public RunThroughTree() {
         JMeterTreeModel jMeterTreeModel = GuiPackage.getInstance().getTreeModel();
         JMeterTreeNode firstNode = jMeterTreeModel.getNodesOfType(Object.class).get(1);
 
         traverseAndRenameTree(firstNode, 0);
+        if (renameConfig.get("printTree").asBoolean())
+            System.out.println("-".repeat(50));
+        counters.clear();
         GuiPackage.getInstance().refreshCurrentGui();
         GuiPackage.getInstance().getMainFrame().repaint();
+        GuiPackage.getInstance().getTreeModel().nodeChanged(firstNode);
 //        GuiPackage.getInstance().getTreeModel().reload();
     }
 
     private void traverseAndRenameTree(JMeterTreeNode treeNode, int level) {
         String currentNodeType = treeNode.getTestElement().getClass().getSimpleName();
-        System.out.println(level + "    ".repeat(level) + currentNodeType);
+        counters.putIfAbsent(Integer.toString(level), new customCounter(1L));
+        if (renameConfig.get("printTree").asBoolean())
+            System.out.printf("%s: %s\"%s\" (%s)%n",
+                    level,
+                    "|    ".repeat(level),
+                    treeNode.getName(),
+                    currentNodeType
+            );
 
         JsonNode nodeProps = renameConfig.get("NodeProperties").findValue(currentNodeType);
         if (nodeProps != null) {
@@ -43,9 +56,13 @@ public class RunThroughTree {
             JsonNode searchBlock = nodeProps.get("search");
             if (searchBlock != null) {
                 for (JsonNode searchParam : searchBlock) {
-                    String searchIn = replaceVariables(searchParam.get("searchIn").asText(), variables);
+                    String searchIn = replaceVariables(
+                            searchParam.get("searchIn").asText(),
+                            variables,
+                            counters,
+                            level);
                     String searchReg = searchParam.get("searchReg").asText();
-                    String searchOut = searchParam.get("searchOut").asText();
+                    String searchOutVar = searchParam.get("searchOutVar").asText();
                     String searchDefault = searchParam.get("searchDefault").asText();
                     int searchRegGroup = searchParam.get("searchRegGroup").asInt();
 
@@ -55,7 +72,7 @@ public class RunThroughTree {
                     if (matcher.find()) {
                         result = matcher.group(searchRegGroup);
                     }
-                    variables.put(searchOut, result);
+                    variables.put(searchOutVar, result);
                 }
             }
 
@@ -70,8 +87,14 @@ public class RunThroughTree {
                 }
             }
 
-            treeNode.setName(replaceVariables(template, variables));
-            GuiPackage.getInstance().getTreeModel().nodeChanged(treeNode);
+            JsonNode replaceJmeterVars = nodeProps.get("replaceJmeterVars");
+            if (replaceJmeterVars != null && replaceJmeterVars.asBoolean())
+                template = template.replaceAll("\\$\\{", "{");
+            treeNode.setName(replaceVariables(
+                    template,
+                    variables,
+                    counters,
+                    level));
         }
 
         Enumeration<?> children = treeNode.children();

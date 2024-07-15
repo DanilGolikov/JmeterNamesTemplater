@@ -11,6 +11,11 @@ public class customCounter {
         this.counter = start;
     }
 
+    public customCounter(Long start) {
+        this.start = start;
+        this.counter = start;
+    }
+
     public synchronized long get() {
         return this.counter;
     }
@@ -36,5 +41,10 @@ public class customCounter {
         if (this.end != null && this.counter > this.end)
             this.counter = this.start;
         return this.counter;
+    }
+
+    public synchronized long resetAndGet() {
+        this.counter = this.start;
+        return  this.counter;
     }
 }
