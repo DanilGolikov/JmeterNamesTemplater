@@ -87,7 +87,7 @@ public class RenameUtils {
                     counterValue = counters.get(counterIndex).resetAndGet();
                     break;
                 default:
-                    counterValue = counters.get(counterIndex).getAndAdd(1L);
+                    counterValue = counters.get(counterIndex).addAndGet(1L);
             }
 
             str = str.replace(placeHolder, String.format("%" + counterFormat +  "d", counterValue));

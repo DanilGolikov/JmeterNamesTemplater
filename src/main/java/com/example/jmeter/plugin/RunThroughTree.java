@@ -31,13 +31,13 @@ public class RunThroughTree {
         counters.clear();
         GuiPackage.getInstance().refreshCurrentGui();
         GuiPackage.getInstance().getMainFrame().repaint();
-        GuiPackage.getInstance().getTreeModel().nodeChanged(firstNode);
+//        GuiPackage.getInstance().getTreeModel().nodeChanged(firstNode);
 //        GuiPackage.getInstance().getTreeModel().reload();
     }
 
     private void traverseAndRenameTree(JMeterTreeNode treeNode, int level) {
         String currentNodeType = treeNode.getTestElement().getClass().getSimpleName();
-        counters.putIfAbsent(Integer.toString(level), new customCounter(1L));
+        counters.putIfAbsent(Integer.toString(level), new customCounter(0L));
         if (renameConfig.get("printTree").asBoolean())
             System.out.printf("%s: %s\"%s\" (%s)%n",
                     level,
@@ -96,6 +96,7 @@ public class RunThroughTree {
                     counters,
                     level));
         }
+        GuiPackage.getInstance().getTreeModel().nodeChanged(treeNode);
 
         Enumeration<?> children = treeNode.children();
         while (children.hasMoreElements()) {
