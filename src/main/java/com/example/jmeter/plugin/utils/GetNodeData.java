@@ -7,7 +7,6 @@ import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.testelement.TestElement;
 
 import java.util.Map;
-import java.util.Optional;
 
 public class GetNodeData {
 

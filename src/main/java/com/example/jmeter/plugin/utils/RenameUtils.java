@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,9 +48,9 @@ public class RenameUtils {
     }
 
     public static String replaceVariables(
-                                    String str, Map<String,
-                                    String> variables, Map<String,
-                                    customCounter> counters,
+                                    String str,
+                                    Map<String,String> variables,
+                                    Map<String, customCounter> counters,
                                     int level) {
         for (Map.Entry<String, String> entry : variables.entrySet()) {
             String placeholder = "#{" + entry.getKey() + "}";
@@ -61,7 +60,7 @@ public class RenameUtils {
         Matcher counterMatcher = counterPattern.matcher(str);
         while (counterMatcher.find()) {
             String placeHolder = counterMatcher.group();
-            String[] counterParams = counterMatcher.group(1).split(",",-1);
+            String[] counterParams = counterMatcher.group(1).split(",", -1);
             String counterName = counterParams[0];
             String counterCommand = counterParams[1];
             String counterFormat = counterParams[2];

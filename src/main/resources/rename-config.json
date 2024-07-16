@@ -1,10 +1,42 @@
 {
-  "variables": {
-    "test": null
-  },
-  "NodesProperties": {
+  "printTree": true,
+  "reloadAllTree": false,
+  "NodeProperties": {
     "HTTPSamplerProxy": {
-      "template": ""
+      "replaceJmeterVars": true,
+      "search": [{
+        "searchIn": "#{name}",
+        "searchReg": "(TR\\d+)",
+        "searchRegGroup": 1,
+        "searchOutVar": "myTestVar",
+        "searchDefault": "null"
+      }],
+      "conditions": [
+
+      ],
+      "template": "UC#{__counter(2,get,02)}_TR#{__counter(parent,get,02)}_RQ#{__counter(current,,02)}_#{method}_#{path}"
+    },
+    "TransactionController": {
+      "replaceJmeterVars": true,
+      "conditions": [
+        {
+          "inParentType": "ThreadGroup",
+          "strEquals": ["#{name}", "#{name}"],
+          "strContains": ["#{name}", "1"],
+          "maxLevel": 2,
+          "currentLevel": 2,
+          "template": "cond1"
+        },
+        {
+          "inParentType": "TransactionController",
+          "maxLevel": 3,
+          "template": "UC#{__counter(parent,get,02)}_TR#{__counter(current,,02)}"
+        }
+      ],
+      "template": "default|#{__counter(current,,)}"
     }
+  },
+  "variables": {
+    "test": 123
   }
 }

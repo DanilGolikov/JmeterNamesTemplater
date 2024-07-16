@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>jmeter-plugins-updated-naming-policy</artifactId>
+    <artifactId>jmeter-plugins-names-templeter</artifactId>
     <version>1.0</version>
 
     <properties>
