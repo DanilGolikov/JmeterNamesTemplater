@@ -12,7 +12,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,9 +43,7 @@ public class RunThroughTree {
 
         JsonNode vars = renameConfig.get("variables");
         if (globalVariables != null) {
-            vars.fields().forEachRemaining(field -> {
-                globalVariables.put(field.getKey(), field.getValue().asText());
-            });
+            vars.fields().forEachRemaining(field -> globalVariables.put(field.getKey(), field.getValue().asText()));
         }
 
         traverseAndRenameTree(firstNode, 0);
