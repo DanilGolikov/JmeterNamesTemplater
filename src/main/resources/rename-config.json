@@ -1,20 +1,20 @@
 {
-  "printTree": true,
+  "printDebug": true,
   "reloadAllTree": false,
   "NodeProperties": {
     "HTTPSamplerProxy": {
       "replaceJmeterVars": true,
       "search": [{
         "searchIn": "#{name}",
-        "searchReg": "(TR\\d+)",
+        "searchReg": "(VAR.*)",
         "searchRegGroup": 1,
-        "searchOutVar": "myTestVar",
+        "searchOutVar": "global.testGlobalVar_1",
         "searchDefault": "null"
       }],
       "conditions": [
 
       ],
-      "template": "UC#{__counter(2,get,02)}_TR#{__counter(parent,get,02)}_RQ#{__counter(current,,02)}_#{method}_#{path}"
+      "template": "#{global.testGlobalVar_3}"
     },
     "TransactionController": {
       "replaceJmeterVars": true,
@@ -22,21 +22,19 @@
         {
           "inParentType": "ThreadGroup",
           "strEquals": ["#{name}", "#{name}"],
-          "strContains": ["#{name}", "1"],
+          "strContains": ["#{name}", ""],
           "maxLevel": 2,
           "currentLevel": 2,
-          "template": "cond1"
-        },
-        {
-          "inParentType": "TransactionController",
-          "maxLevel": 3,
-          "template": "UC#{__counter(parent,get,02)}_TR#{__counter(current,,02)}"
+          "putVar": ["global.testGlobalVar_2", "teeeeeest"],
+          "template": "cond1_#{global.testGlobalVar_2}"
         }
       ],
       "template": "default|#{__counter(current,,)}"
     }
   },
   "variables": {
-    "test": 123
+    "testGlobalVar_1": "GLOBAL_VAR_1",
+    "testGlobalVar_2": "GLOBAL_VAR_2",
+    "testGlobalVar_3": "GLOBAL_VAR_3"
   }
 }

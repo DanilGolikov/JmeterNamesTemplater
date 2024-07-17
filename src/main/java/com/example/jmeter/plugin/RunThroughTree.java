@@ -5,10 +5,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeModel;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,57 +22,72 @@ import static com.example.jmeter.plugin.utils.RenameUtils.replaceVariables;
 public class RunThroughTree {
 
     public static JsonNode renameConfig;
-    public static boolean printTree;
     public static boolean reloadAllTree;
-    public static Map<String, customCounter> counters = new HashMap<>();
+    public static boolean printDebug;
+
+    public static Map<String, String> globalVariables = new HashMap<>();
+    public static Map<String, customCounter> globalCounters = new HashMap<>();
+
+    private final StringBuilder logDebugOut;
+    private static final Logger log = LoggerFactory.getLogger(RunThroughTree.class);
 
     public RunThroughTree() {
+        logDebugOut = new StringBuilder("\n");
+
         JMeterTreeModel jMeterTreeModel = GuiPackage.getInstance().getTreeModel();
         JMeterTreeNode firstNode = jMeterTreeModel.getNodesOfType(Object.class).get(1);
 
         reloadAllTree = renameConfig.get("reloadAllTree") != null && renameConfig.get("reloadAllTree").asBoolean();
-        printTree = renameConfig.get("printTree") != null && renameConfig.get("printTree").asBoolean();
+        printDebug = renameConfig.get("printDebug") != null && renameConfig.get("printDebug").asBoolean();
+
+        JsonNode vars = renameConfig.get("variables");
+        if (globalVariables != null) {
+            vars.fields().forEachRemaining(field -> {
+                globalVariables.put(field.getKey(), field.getValue().asText());
+            });
+        }
 
         traverseAndRenameTree(firstNode, 0);
         GuiPackage.getInstance().refreshCurrentGui();
         GuiPackage.getInstance().getMainFrame().repaint();
 
-        if (printTree)
-            System.out.println("-".repeat(50));
+        logDebugOut.append("-".repeat(50));
 
         if (reloadAllTree)
             GuiPackage.getInstance().getTreeModel().reload();
 
-        counters.clear();
+        if (printDebug)
+            log.info(logDebugOut.toString());
+
+        globalVariables.clear();
+        globalCounters.clear();
     }
 
     private void traverseAndRenameTree(JMeterTreeNode treeNode, int level) {
         String currentNodeType = treeNode.getTestElement().getClass().getSimpleName();
-        counters.putIfAbsent(Integer.toString(level), new customCounter(0L));
-        if (printTree)
-            System.out.printf("%s: %s\"%s\" (%s)%n",
+        globalCounters.putIfAbsent(Integer.toString(level), new customCounter(0L));
+        logDebugOut.append(String.format("%d: %s\"%s\" (%s)\n",
                     level,
                     "|    ".repeat(level),
                     treeNode.getName(),
                     currentNodeType
-            );
+        ));
 
         JsonNode nodeProps = renameConfig.get("NodeProperties").findValue(currentNodeType);
         if (nodeProps != null) {
-            Map<String, String> variables = new HashMap<>();
-            getNodeData("parent.", (JMeterTreeNode) treeNode.getParent(), variables);
-            getNodeData("", treeNode, variables);
-//            getNodeData("next", (JMeterTreeNode) treeNode.children().nextElement(), variables);
+            Map<String, String> nodeVariables = new HashMap<>();
+            Function<String, String> shortReplaceVariable = (str) ->
+                    replaceVariables(str, nodeVariables, globalVariables, globalCounters, level);
+
+            getNodeData("parent.", (JMeterTreeNode) treeNode.getParent(), nodeVariables);
+            getNodeData("", treeNode, nodeVariables);
+//            getNodeData("next", (JMeterTreeNode) treeNode.children().nextElement(), nodeVariables);
             String template = nodeProps.get("template").asText();
 
             JsonNode searchBlock = nodeProps.get("search");
             if (searchBlock != null) {
                 for (JsonNode searchParam : searchBlock) {
-                    String searchIn = replaceVariables(
-                            searchParam.get("searchIn").asText(),
-                            variables,
-                            counters,
-                            level);
+                    String searchIn = shortReplaceVariable.apply(searchParam.get("searchIn").asText());
                     String searchReg = searchParam.get("searchReg").asText();
                     String searchOutVar = searchParam.get("searchOutVar").asText();
                     String searchDefault = searchParam.get("searchDefault").asText();
@@ -80,7 +98,11 @@ public class RunThroughTree {
                     String result = searchDefault;
                     if (matcher.find())
                         result = matcher.group(searchRegGroup);
-                    variables.put(searchOutVar, result);
+
+                    if (searchOutVar.startsWith("global."))
+                        globalVariables.put(searchOutVar.replace("global.", ""), result);
+                    else
+                        nodeVariables.put(searchOutVar, result);
                 }
             }
 
@@ -100,42 +122,26 @@ public class RunThroughTree {
                     boolean bool_maxLevel = maxLevel == null ||
                             maxLevel.asInt() <= level;
                     boolean bool_strEquals = strEquals == null ||
-                            replaceVariables(
-                                    strEquals.get(0).asText(),
-                                    variables,
-                                    counters,
-                                    level)
-                            .equals(
-                            replaceVariables(strEquals.get(1).asText(),
-                                    variables,
-                                    counters,
-                                    level));
+                            shortReplaceVariable.apply(strEquals.get(0).asText())
+                            .equals(shortReplaceVariable.apply(strEquals.get(1).asText()));
                     boolean bool_strContains = strContains == null ||
-                            replaceVariables(
-                                    strContains.get(0).asText(),
-                                    variables,
-                                    counters,
-                                    level)
-                            .contains(
-                            replaceVariables(strContains.get(1).asText(),
-                                    variables,
-                                    counters,
-                                    level));
+                            shortReplaceVariable.apply(strContains.get(0).asText())
+                            .contains(shortReplaceVariable.apply(strContains.get(1).asText()));
 
                     String tabCount = "     ".repeat(level+1);
-                    System.out.printf(
-                            tabCount + "bool_inParentType: %s%n" +
-                            tabCount + "bool_currentLevel: %s%n" +
-                            tabCount + "bool_maxLevel: %s%n" +
-                            tabCount + "bool_strEquals: %s%n" +
-                            tabCount + "bool_strContains: %s%n" +
-                            tabCount + "-".repeat(10) + "%n",
+                    logDebugOut.append(String.format(
+                            tabCount + "bool_inParentType: %s\n" +
+                            tabCount + "bool_currentLevel: %s\n" +
+                            tabCount + "bool_maxLevel: %s\n" +
+                            tabCount + "bool_strEquals: %s\n" +
+                            tabCount + "bool_strContains: %s\n" +
+                            tabCount + "-".repeat(10) + "\n",
                             bool_inParentType,
                             bool_currentLevel,
                             bool_maxLevel,
                             bool_strEquals,
                             bool_strContains
-                    );
+                    ));
                     if (
                         bool_inParentType &&
                         bool_currentLevel &&
@@ -143,6 +149,15 @@ public class RunThroughTree {
                         bool_strEquals &&
                         bool_strContains
                     ) {
+                        JsonNode putVar = condition.get("putVar");
+                        if (putVar != null) {
+                            String varName = putVar.get(0).asText();
+                            String varValue = shortReplaceVariable.apply(putVar.get(1).asText());
+                            if (varName.startsWith("global."))
+                                globalVariables.put(varName.replace("global.", ""), varValue);
+                            else
+                                nodeVariables.put(varName, varValue);
+                        }
                         template = condition.get("template").asText();
                         break;
                     }
@@ -153,11 +168,7 @@ public class RunThroughTree {
             JsonNode replaceJmeterVars = nodeProps.get("replaceJmeterVars");
             if (replaceJmeterVars != null && replaceJmeterVars.asBoolean())
                 template = template.replaceAll("\\$\\{", "{");
-            treeNode.setName(replaceVariables(
-                    template,
-                    variables,
-                    counters,
-                    level));
+            treeNode.setName(shortReplaceVariable.apply(template));
         }
         if (!reloadAllTree)
             GuiPackage.getInstance().getTreeModel().nodeChanged(treeNode);

@@ -4,6 +4,8 @@ import com.example.jmeter.plugin.RunThroughTree;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.io.File;
@@ -22,6 +24,8 @@ public class RenameUtils {
 
     public static JsonNode renameConfig;
 
+    private static final Logger log = LoggerFactory.getLogger(RenameUtils.class);
+
     public static void CheckCreateRenameConfig() {
         try {
             String resName = "rename-config.json";
@@ -39,23 +43,27 @@ public class RenameUtils {
             ObjectMapper mapper = new ObjectMapper();
             renameConfig = mapper.readTree(new File(destPath.toString()));
             RunThroughTree.renameConfig = renameConfig;
-//            System.out.println(renameConfig.toPrettyString());
+            log.debug(renameConfig.toPrettyString());
 
 
         } catch (IOException | URISyntaxException e) {
-            System.out.println(e);;
+            log.error(e.toString());;
         }
     }
 
     public static String replaceVariables(
                                     String str,
-                                    Map<String,String> variables,
+                                    Map<String, String> nodeVariables,
+                                    Map<String, String> globalVariables,
                                     Map<String, customCounter> counters,
                                     int level) {
-        for (Map.Entry<String, String> entry : variables.entrySet()) {
-            String placeholder = "#{" + entry.getKey() + "}";
-            str = str.replace(placeholder, entry.getValue());
-        }
+
+        for (Map.Entry<String, String> entry : nodeVariables.entrySet())
+            str = str.replace("#{" + entry.getKey() + "}", entry.getValue());
+
+        for (Map.Entry<String, String> entry : globalVariables.entrySet())
+            str = str.replace("#{global." + entry.getKey() + "}", entry.getValue());
+
         Pattern counterPattern = Pattern.compile("#\\{__counter\\((.+?)\\)}");
         Matcher counterMatcher = counterPattern.matcher(str);
         while (counterMatcher.find()) {
