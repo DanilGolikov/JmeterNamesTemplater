@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -79,6 +81,13 @@ public class RunThroughTree {
             Function<String, String> shortReplaceVariable = (str) ->
                     replaceVariables(str, nodeVariables, globalVariables, globalCounters, level);
 
+            BiConsumer<String, String> shortVarPut = (varName, varValue) -> {
+                if (varName.startsWith("global."))
+                    globalVariables.put(varName.replace("global.", ""), varValue);
+                else
+                    nodeVariables.put(varName, varValue);
+            };
+
             getNodeData("parent.", (JMeterTreeNode) treeNode.getParent(), nodeVariables);
             getNodeData("", treeNode, nodeVariables);
 //            getNodeData("next", (JMeterTreeNode) treeNode.children().nextElement(), nodeVariables);
@@ -99,10 +108,7 @@ public class RunThroughTree {
                     if (matcher.find())
                         result = matcher.group(searchRegGroup);
 
-                    if (searchOutVar.startsWith("global."))
-                        globalVariables.put(searchOutVar.replace("global.", ""), result);
-                    else
-                        nodeVariables.put(searchOutVar, result);
+                    shortVarPut.accept(searchOutVar, result);
                 }
             }
 
@@ -150,14 +156,9 @@ public class RunThroughTree {
                         bool_strContains
                     ) {
                         JsonNode putVar = condition.get("putVar");
-                        if (putVar != null) {
-                            String varName = putVar.get(0).asText();
-                            String varValue = shortReplaceVariable.apply(putVar.get(1).asText());
-                            if (varName.startsWith("global."))
-                                globalVariables.put(varName.replace("global.", ""), varValue);
-                            else
-                                nodeVariables.put(varName, varValue);
-                        }
+                        if (putVar != null)
+                            shortVarPut.accept(putVar.get(0).asText(), shortReplaceVariable.apply(putVar.get(1).asText()));
+
                         template = condition.get("template").asText();
                         break;
                     }
