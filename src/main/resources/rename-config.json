@@ -4,17 +4,19 @@
   "NodeProperties": {
     "HTTPSamplerProxy": {
       "replaceJmeterVars": true,
-      "search": [{
-        "searchIn": "#{name}",
-        "searchReg": "(VAR.*)",
-        "searchRegGroup": 1,
-        "searchOutVar": "global.testGlobalVar_1",
-        "searchDefault": "null"
-      }],
+      "search": [
+        {
+          "searchIn": "#{name}",
+          "searchReg": "(VAR.*)",
+          "searchRegGroup": 1,
+          "searchOutVar": "global.testGlobalVar_1",
+          "searchDefault": "null"
+        }
+      ],
       "conditions": [
 
       ],
-      "template": "#{global.testGlobalVar_3}"
+      "template": "#{global.testGlobalVar_2}_#{__counter(current,,02)}"
     },
     "TransactionController": {
       "replaceJmeterVars": true,
@@ -22,19 +24,26 @@
         {
           "inParentType": "ThreadGroup",
           "strEquals": ["#{name}", "#{name}"],
-          "strContains": ["#{name}", ""],
+          "strContains": ["#{name}", "aaa"],
           "maxLevel": 2,
           "currentLevel": 2,
           "putVar": ["global.testGlobalVar_2", "teeeeeest"],
-          "template": "cond1_#{global.testGlobalVar_2}"
+          "template": "cond1_#{global.testGlobalVar_2}_#{__counter(current,,02)}"
         }
       ],
-      "template": "default|#{__counter(current,,)}"
+      "template": "default|#{__counter(current,,)}|#{__counter(myCounter,getAndAdd,03)}"
     }
   },
   "variables": {
     "testGlobalVar_1": "GLOBAL_VAR_1",
     "testGlobalVar_2": "GLOBAL_VAR_2",
-    "testGlobalVar_3": "GLOBAL_VAR_3"
+    "testGlobalVar_3": 999
+  },
+  "counters": {
+    "myCounter": {
+      "startValue": 1,
+      "endValue": 30,
+      "increment": 1
+    }
   }
 }
