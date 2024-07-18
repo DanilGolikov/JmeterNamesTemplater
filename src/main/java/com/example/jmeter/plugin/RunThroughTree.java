@@ -46,6 +46,19 @@ public class RunThroughTree {
             vars.fields().forEachRemaining(field -> globalVariables.put(field.getKey(), field.getValue().asText()));
         }
 
+        JsonNode counters = renameConfig.get("counters");
+        if (globalCounters != null) {
+            counters.fields().forEachRemaining(field -> {
+                String counterName = field.getKey();
+                JsonNode values = field.getValue();
+                Long counterStart = values.get("startValue") == null ? 0L : values.get("startValue").asLong();
+                Long counterEnd = values.get("endValue") == null ? null : values.get("endValue").asLong();
+                int counterIncrement = values.get("increment") == null ? 1 : values.get("increment").asInt();
+
+                globalCounters.put(counterName, new customCounter(counterStart, counterEnd, counterIncrement));
+            });
+        }
+
         traverseAndRenameTree(firstNode, 0);
         GuiPackage.getInstance().refreshCurrentGui();
         GuiPackage.getInstance().getMainFrame().repaint();
@@ -64,7 +77,7 @@ public class RunThroughTree {
 
     private void traverseAndRenameTree(JMeterTreeNode treeNode, int level) {
         String currentNodeType = treeNode.getTestElement().getClass().getSimpleName();
-        globalCounters.putIfAbsent(Integer.toString(level), new customCounter(0L));
+        globalCounters.putIfAbsent(Integer.toString(level), new customCounter(0L, null, 1));
         logDebugOut.append(String.format("%d: %s\"%s\" (%s)\n",
                     level,
                     "|    ".repeat(level),
@@ -74,6 +87,10 @@ public class RunThroughTree {
 
         JsonNode nodeProps = renameConfig.get("NodeProperties").findValue(currentNodeType);
         if (nodeProps != null) {
+            JsonNode skipDisabled = nodeProps.get("skipDisabled");
+            if (skipDisabled != null && skipDisabled.asBoolean() && !treeNode.isEnabled())
+                return;
+
             Map<String, String> nodeVariables = new HashMap<>();
             Function<String, String> shortReplaceVariable = (str) ->
                     replaceVariables(str, nodeVariables, globalVariables, globalCounters, level);

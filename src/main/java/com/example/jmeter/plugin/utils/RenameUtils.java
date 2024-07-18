@@ -47,7 +47,7 @@ public class RenameUtils {
 
 
         } catch (IOException | URISyntaxException e) {
-            log.error(e.toString());;
+            log.error(e.toString());
         }
     }
 
@@ -93,8 +93,12 @@ public class RenameUtils {
                 case "resetAndGet":
                     counterValue = counters.get(counterIndex).resetAndGet();
                     break;
+                case "getAndAdd":
+                    counterValue = counters.get(counterIndex).getAndAdd();
+                    break;
+                case "addAndGet":
                 default:
-                    counterValue = counters.get(counterIndex).addAndGet(1L);
+                    counterValue = counters.get(counterIndex).addAndGet();
             }
 
             str = str.replace(placeHolder, String.format("%" + counterFormat +  "d", counterValue));
