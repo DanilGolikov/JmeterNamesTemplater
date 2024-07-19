@@ -30,6 +30,7 @@ public class RunThroughTree {
     public static Map<String, customCounter> globalCounters = new HashMap<>();
 
     private final StringBuilder logDebugOut;
+    private final boolean removeEmptyVars;
     private static final Logger log = LoggerFactory.getLogger(RunThroughTree.class);
 
     public RunThroughTree() {
@@ -40,8 +41,9 @@ public class RunThroughTree {
         JMeterTreeNode firstNode = jMeterTreeModel.getNodesOfType(Object.class).get(1);
 
         // ---------------ПЕРЕМЕННЫЕ ГЛОБАЛЬНОГО УРОВНЯ (renameConfig)---------------
-        reloadAllTree = renameConfig.get("reloadAllTree") != null && renameConfig.get("reloadAllTree").asBoolean();
-        printDebug = renameConfig.get("debugEnable") != null && renameConfig.get("debugEnable").asBoolean();
+        reloadAllTree = renameConfig.get("reloadAllTree") != null && renameConfig.get("reloadAllTree").asBoolean(); // default = false
+        printDebug = renameConfig.get("debugEnable") != null && renameConfig.get("debugEnable").asBoolean(); // default = false
+        removeEmptyVars = renameConfig.get("removeEmptyVars") != null && renameConfig.get("removeEmptyVars").asBoolean(); // default = false
         JsonNode vars = renameConfig.get("variables");
         JsonNode counters = renameConfig.get("counters");
 
@@ -95,7 +97,7 @@ public class RunThroughTree {
             JsonNode skipDisabled = nodeProps.get("skipDisabled");
             JsonNode searchBlock = nodeProps.get("search");
             JsonNode conditionsBlock = nodeProps.get("conditions");
-            JsonNode replaceJmeterVars = nodeProps.get("replaceJmeterVars");
+            JsonNode disableJmeterVars = nodeProps.get("disableJmeterVars");
             JsonNode debugPrintConditionsResult = nodeProps.get("debugPrintConditionsResult");
 
             Map<String, String> nodeVariables = new HashMap<>();
@@ -111,7 +113,7 @@ public class RunThroughTree {
                     nodeVariables.put(varName, varValue);
             };
 
-            if (skipDisabled != null && skipDisabled.asBoolean() && !treeNode.isEnabled())
+            if (skipDisabled != null && skipDisabled.asBoolean() && !treeNode.isEnabled()) // default = false
                 return;
 
             getNodeData("parent.", (JMeterTreeNode) treeNode.getParent(), nodeVariables);
@@ -124,12 +126,15 @@ public class RunThroughTree {
                     String searchOutVar = searchParam.get("searchOutVar").asText();
                     String searchDefault = searchParam.get("searchDefault").asText();
                     int searchRegGroup = searchParam.get("searchRegGroup").asInt();
+                    JsonNode leftRightSymbols = searchParam.get("leftRightSymbols");
+                    String left = (leftRightSymbols != null) ? leftRightSymbols.get(0).asText() : "";
+                    String right = (leftRightSymbols != null) ? leftRightSymbols.get(1).asText() : "";
 
                     Pattern searchPattern = Pattern.compile(searchReg);
                     Matcher matcher = searchPattern.matcher(searchIn);
                     String result = searchDefault;
                     if (matcher.find())
-                        result = matcher.group(searchRegGroup);
+                        result = left + matcher.group(searchRegGroup) + right;
 
                     shortVarPut.accept(searchOutVar, result);
                 }
@@ -144,6 +149,8 @@ public class RunThroughTree {
                     JsonNode strContains = condition.get("strContains");
                     JsonNode putVar = condition.get("putVar");
                     JsonNode condTemplate = condition.get("template");
+                    JsonNode leftRightSymbols = condition.get("leftRightSymbols");
+                    JsonNode skip = condition.get("skip");
 
                     boolean bool_inParentType = inParentType == null ||
                             inParentType.asText().equals(getNodeType((JMeterTreeNode) treeNode.getParent()));
@@ -181,9 +188,14 @@ public class RunThroughTree {
                         bool_strEquals &&
                         bool_strContains
                     ) {
+                        if (skip != null && skip.asBoolean()) // default = false
+                            return;
                         if (putVar != null || condTemplate != null) {
-                            if (putVar != null)
-                                shortVarPut.accept(putVar.get(0).asText(), shortReplaceVariable.apply(putVar.get(1).asText()));
+                            if (putVar != null) {
+                                String left = (leftRightSymbols != null) ? leftRightSymbols.get(0).asText() : "";
+                                String right = (leftRightSymbols != null) ? leftRightSymbols.get(1).asText() : "";
+                                shortVarPut.accept(putVar.get(0).asText(), left + shortReplaceVariable.apply(putVar.get(1).asText()) + right);
+                            }
                             if (condTemplate != null)
                                 template = condTemplate.asText();
                         } else
@@ -192,10 +204,16 @@ public class RunThroughTree {
                     }
                 }
             }
-            if (replaceJmeterVars != null && replaceJmeterVars.asBoolean())
-                template = template.replaceAll("\\$\\{", "{");
 
             template = shortReplaceVariable.apply(template);
+
+            if (disableJmeterVars == null || disableJmeterVars.asBoolean()) // default = true
+                template = template.replaceAll("\\$\\{", "{");
+            if (removeEmptyVars)
+                template = template.replaceAll("#\\{.*?}", "");
+
+
+
             if (!template.equals(nodeVariables.get("name"))) {
 //                log.info("No skipped Jmeter Node\nname: {}\ntemplate: {}\n----------", nodeVariables.get("name"), template);
                 treeNode.setName(template);

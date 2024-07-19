@@ -1,10 +1,13 @@
 package com.example.jmeter.plugin.utils;
 
+import org.apache.jmeter.config.Argument;
 import org.apache.jmeter.control.ModuleController;
 import org.apache.jmeter.control.TransactionController;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.testelement.TestElement;
+import org.apache.jmeter.testelement.property.CollectionProperty;
+import org.apache.jmeter.testelement.property.JMeterProperty;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 
@@ -52,6 +55,19 @@ public class GetNodeData {
         map.put(prefix + "host", httpSampler.getDomain());
         map.put(prefix + "path", httpSampler.getPath().replaceAll("\\$\\{", "{"));
         map.put(prefix + "method", httpSampler.getMethod());
+
+        StringBuilder params = new StringBuilder();
+        int paramIndex = 1;
+        CollectionProperty args = httpSampler.getArguments().getArguments();
+        for (JMeterProperty jMeterProperty : args) {
+            Argument argument = (Argument) jMeterProperty.getObjectValue();
+            params.append(String.format("%s=%s&", argument.getName(), argument.getValue()));
+            map.put(prefix + "param." + paramIndex++, argument.getValue());
+        }
+        if (params.length() > 0)
+            params.setLength(params.length() - 1);
+        map.put(prefix + "params", params.toString());
+
     }
 
     public static void getTransactionControllerData(String prefix, TransactionController transactionController, Map<String, String> map) {
@@ -64,6 +80,7 @@ public class GetNodeData {
     public static void getModuleControllerDate(String prefix, ModuleController moduleController, Map<String, String> map) {
         map.put(prefix + "name", moduleController.getName());
         map.put(prefix + "comment", moduleController.getComment());
+
         JMeterTreeNode selectedNode = moduleController.getSelectedNode();
         map.put(prefix + "selectedElementName", (selectedNode == null) ? "" : selectedNode.getName());
     }
