@@ -41,7 +41,7 @@ public class customCounter {
     }
 
     public long resetAndGet() {
-        this.counter = this.start + 1;
+        this.counter = this.start;
         return this.counter;
     }
 }

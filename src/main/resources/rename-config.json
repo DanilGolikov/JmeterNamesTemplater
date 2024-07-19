@@ -2,6 +2,10 @@
   "debugEnable": true,
   "reloadAllTree": false,
   "removeEmptyVars": false,
+  "replace": [
+    ["null_", "", "HTTPSamplerProxy"],
+    ["http_", ""]
+  ],
   "NodeProperties": {
     "HTTPSamplerProxy": {
       "disableJmeterVars": true,
@@ -16,7 +20,10 @@
         }
       ],
       "conditions": [
-
+        {
+          "inParentType": "TransactionController",
+          "template": "TC"
+        }
       ],
       "template": "#{global.testGlobalVar_2}_#{__counter(current,,02)}_#{protocol}_#{param.3}"
     },
@@ -31,9 +38,10 @@
           "strContains": ["#{name}", "T"],
           "maxLevel": 2,
           "currentLevel": 2,
-          "putVar": ["global.testGlobalVar_2", "teeeeeest"],
-          "skip": false,
           "leftRightSymbols": ["|", "|"],
+          "skip": false,
+          "counterCommands": "",
+          "putVar": ["global.testGlobalVar_2", "teeeeeest"],
           "template": "cond1_#{global.testGlobalVar_2}_#{__counter(current,,02)}"
         }
       ],

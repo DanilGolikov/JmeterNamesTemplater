@@ -86,22 +86,23 @@ public class RenameUtils {
                     counterIndex = counterName;
             }
 
-            switch (counterCommand) {
-                case "get":
-                    counterValue = counters.get(counterIndex).get();
-                    break;
-                case "resetAndGet":
-                    counterValue = counters.get(counterIndex).resetAndGet();
-                    break;
-                case "getAndAdd":
-                    counterValue = counters.get(counterIndex).getAndAdd();
-                    break;
-                case "addAndGet":
-                default:
-                    counterValue = counters.get(counterIndex).addAndGet();
-            }
-
-            str = str.replace(placeHolder, String.format("%" + counterFormat +  "d", counterValue));
+            try {
+                switch (counterCommand) {
+                    case "get":
+                        counterValue = counters.get(counterIndex).get();
+                        break;
+                    case "resetAndGet":
+                        counterValue = counters.get(counterIndex).resetAndGet();
+                        break;
+                    case "getAndAdd":
+                        counterValue = counters.get(counterIndex).getAndAdd();
+                        break;
+                    case "addAndGet":
+                    default:
+                        counterValue = counters.get(counterIndex).addAndGet();
+                }
+                str = str.replace(placeHolder, String.format("%" + counterFormat +  "d", counterValue));
+            } catch (NullPointerException ignore) {}
         }
 
         return str;

@@ -23,6 +23,7 @@ import static com.example.jmeter.plugin.utils.RenameUtils.replaceVariables;
 public class RunThroughTree {
 
     public static JsonNode renameConfig;
+    public static JsonNode replaceBlock;
     public static boolean reloadAllTree;
     public static boolean printDebug;
 
@@ -44,6 +45,7 @@ public class RunThroughTree {
         reloadAllTree = renameConfig.get("reloadAllTree") != null && renameConfig.get("reloadAllTree").asBoolean(); // default = false
         printDebug = renameConfig.get("debugEnable") != null && renameConfig.get("debugEnable").asBoolean(); // default = false
         removeEmptyVars = renameConfig.get("removeEmptyVars") != null && renameConfig.get("removeEmptyVars").asBoolean(); // default = false
+        replaceBlock = renameConfig.get("replace");
         JsonNode vars = renameConfig.get("variables");
         JsonNode counters = renameConfig.get("counters");
 
@@ -101,7 +103,7 @@ public class RunThroughTree {
             JsonNode debugPrintConditionsResult = nodeProps.get("debugPrintConditionsResult");
 
             Map<String, String> nodeVariables = new HashMap<>();
-            String template = nodeProps.get("template").asText();
+            String template = nodeProps.get("template") == null ? null : nodeProps.get("template").asText();
 
             Function<String, String> shortReplaceVariable = (str) ->
                     replaceVariables(str, nodeVariables, globalVariables, globalCounters, level);
@@ -145,19 +147,23 @@ public class RunThroughTree {
                     JsonNode inParentType = condition.get("inParentType");
                     JsonNode currentLevel = condition.get("currentLevel");
                     JsonNode maxLevel = condition.get("maxLevel");
+                    JsonNode minLevel = condition.get("minLevel");
                     JsonNode strEquals = condition.get("strEquals");
                     JsonNode strContains = condition.get("strContains");
-                    JsonNode putVar = condition.get("putVar");
-                    JsonNode condTemplate = condition.get("template");
                     JsonNode leftRightSymbols = condition.get("leftRightSymbols");
                     JsonNode skip = condition.get("skip");
+                    JsonNode counterCommands = condition.get("counterCommands");
+                    JsonNode putVar = condition.get("putVar");
+                    JsonNode condTemplate = condition.get("template");
 
                     boolean bool_inParentType = inParentType == null ||
                             inParentType.asText().equals(getNodeType((JMeterTreeNode) treeNode.getParent()));
                     boolean bool_currentLevel = currentLevel == null ||
                             currentLevel.asInt() == level;
                     boolean bool_maxLevel = maxLevel == null ||
-                            maxLevel.asInt() <= level;
+                            level <= maxLevel.asInt();
+                    boolean bool_minLevel = minLevel == null ||
+                            level >= minLevel.asInt();
                     boolean bool_strEquals = strEquals == null ||
                             shortReplaceVariable.apply(strEquals.get(0).asText())
                             .equals(shortReplaceVariable.apply(strEquals.get(1).asText()));
@@ -171,12 +177,14 @@ public class RunThroughTree {
                             tabCount + "bool_inParentType: %s\n" +
                             tabCount + "bool_currentLevel: %s\n" +
                             tabCount + "bool_maxLevel: %s\n" +
+                            tabCount + "bool_minLevel: %s\n" +
                             tabCount + "bool_strEquals: %s\n" +
                             tabCount + "bool_strContains: %s\n" +
                             tabCount + "-".repeat(10) + "\n",
                                 bool_inParentType,
                                 bool_currentLevel,
                                 bool_maxLevel,
+                                bool_minLevel,
                                 bool_strEquals,
                                 bool_strContains
                         ));
@@ -185,12 +193,13 @@ public class RunThroughTree {
                         bool_inParentType &&
                         bool_currentLevel &&
                         bool_maxLevel &&
+                        bool_minLevel &&
                         bool_strEquals &&
                         bool_strContains
                     ) {
                         if (skip != null && skip.asBoolean()) // default = false
                             return;
-                        if (putVar != null || condTemplate != null) {
+                        if (putVar != null || condTemplate != null || counterCommands != null) {
                             if (putVar != null) {
                                 String left = (leftRightSymbols != null) ? leftRightSymbols.get(0).asText() : "";
                                 String right = (leftRightSymbols != null) ? leftRightSymbols.get(1).asText() : "";
@@ -198,6 +207,8 @@ public class RunThroughTree {
                             }
                             if (condTemplate != null)
                                 template = condTemplate.asText();
+                            if (counterCommands != null)
+                                shortReplaceVariable.apply(counterCommands.asText());
                         } else
                             return;
                         break;
@@ -205,14 +216,26 @@ public class RunThroughTree {
                 }
             }
 
+            if (template == null)
+                return;
+
             template = shortReplaceVariable.apply(template);
 
             if (disableJmeterVars == null || disableJmeterVars.asBoolean()) // default = true
                 template = template.replaceAll("\\$\\{", "{");
             if (removeEmptyVars)
                 template = template.replaceAll("#\\{.*?}", "");
+            if (replaceBlock != null)
+                for (JsonNode replacement : replaceBlock) {
+                    String replaceRegex = replacement.get(0).asText();
+                    String replaceReplacement = replacement.get(1).asText();
+                    JsonNode replaceNodeType = replacement.get(2);
 
-
+                    if (replaceNodeType == null)
+                        template = template.replaceAll(replaceRegex, replaceReplacement);
+                    else if (currentNodeType.equals(replaceNodeType.asText()))
+                        template = template.replaceAll(replaceRegex, replaceReplacement);
+                }
 
             if (!template.equals(nodeVariables.get("name"))) {
 //                log.info("No skipped Jmeter Node\nname: {}\ntemplate: {}\n----------", nodeVariables.get("name"), template);
