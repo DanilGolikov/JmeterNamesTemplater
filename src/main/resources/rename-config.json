@@ -1,35 +1,39 @@
 {
   "debugEnable": true,
   "reloadAllTree": false,
+  "removeEmptyVars": false,
   "NodeProperties": {
     "HTTPSamplerProxy": {
-      "replaceJmeterVars": true,
+      "disableJmeterVars": true,
       "search": [
         {
           "searchIn": "#{name}",
           "searchReg": "(VAR.*)",
           "searchRegGroup": 1,
-          "searchOutVar": "global.testGlobalVar_1",
+          "searchOutVar": "global.testGlobalVar_2",
+          "leftRightSymbols": ["|", "|"],
           "searchDefault": "null"
         }
       ],
       "conditions": [
 
       ],
-      "template": "#{global.testGlobalVar_2}_#{__counter(current,,02)}_#{protocol}"
+      "template": "#{global.testGlobalVar_2}_#{__counter(current,,02)}_#{protocol}_#{param.3}"
     },
     "TransactionController": {
-      "replaceJmeterVars": true,
+      "disableJmeterVars": false,
       "skipDisabled": false,
       "debugPrintConditionsResult": true,
       "conditions": [
         {
           "inParentType": "ThreadGroup",
           "strEquals": ["#{name}", "#{name}"],
-          "strContains": ["#{name}", "aaa"],
+          "strContains": ["#{name}", "T"],
           "maxLevel": 2,
           "currentLevel": 2,
           "putVar": ["global.testGlobalVar_2", "teeeeeest"],
+          "skip": false,
+          "leftRightSymbols": ["|", "|"],
           "template": "cond1_#{global.testGlobalVar_2}_#{__counter(current,,02)}"
         }
       ],
