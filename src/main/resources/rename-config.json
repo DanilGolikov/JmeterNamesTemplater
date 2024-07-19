@@ -1,5 +1,5 @@
 {
-  "printDebug": true,
+  "debugEnable": true,
   "reloadAllTree": false,
   "NodeProperties": {
     "HTTPSamplerProxy": {
@@ -16,11 +16,12 @@
       "conditions": [
 
       ],
-      "template": "#{global.testGlobalVar_2}_#{__counter(current,,02)}"
+      "template": "#{global.testGlobalVar_2}_#{__counter(current,,02)}_#{protocol}"
     },
     "TransactionController": {
       "replaceJmeterVars": true,
       "skipDisabled": false,
+      "debugPrintConditionsResult": true,
       "conditions": [
         {
           "inParentType": "ThreadGroup",
@@ -32,7 +33,7 @@
           "template": "cond1_#{global.testGlobalVar_2}_#{__counter(current,,02)}"
         }
       ],
-      "template": "default|#{__counter(current,,)}|#{__counter(myCounter,getAndAdd,03)}"
+      "template": "default|#{__counter(current,,)}|#{__counter(myCounter,getAndAdd,03)}|#{__counter(myCounter2,getAndAdd,03)}"
     }
   },
   "variables": {
@@ -43,8 +44,13 @@
   "counters": {
     "myCounter": {
       "startValue": 1,
-      "endValue": 30,
+      "endValue": 3,
       "increment": 1
+    },
+    "myCounter2": {
+      "startValue": 15,
+      "endValue": 30,
+      "increment": 5
     }
   }
 }

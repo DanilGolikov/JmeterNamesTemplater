@@ -13,7 +13,7 @@ public class customCounter {
         this.counter = start;
     }
 
-    public synchronized long get() {
+    public long get() {
         return this.counter;
     }
 
@@ -25,7 +25,7 @@ public class customCounter {
 //        return this.counter;
 //    }
 
-    public synchronized long getAndAdd() {
+    public long getAndAdd() {
         long oldValue = this.counter;
         this.counter += this.increment;
         if (this.end != null && this.counter > this.end)
@@ -33,14 +33,14 @@ public class customCounter {
         return oldValue;
     }
 
-    public synchronized long addAndGet() {
+    public long addAndGet() {
         this.counter += this.increment;
         if (this.end != null && this.counter > this.end)
             this.counter = this.start;
         return this.counter;
     }
 
-    public synchronized long resetAndGet() {
+    public long resetAndGet() {
         this.counter = this.start + 1;
         return this.counter;
     }

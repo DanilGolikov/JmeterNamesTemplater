@@ -5,10 +5,16 @@ import org.apache.jmeter.control.TransactionController;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.testelement.TestElement;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 public class GetNodeData {
+
+//    private static final Logger log = LoggerFactory.getLogger(GetNodeData.class);
 
     public static String getNodeType(JMeterTreeNode node) {
         return node.getTestElement().getClass().getSimpleName();
@@ -16,22 +22,30 @@ public class GetNodeData {
 
     public static void getNodeData(String prefix, JMeterTreeNode node, Map<String, String> map) {
         TestElement nodeTestElement = node.getTestElement();
+        String methodName = "get" + nodeTestElement.getClass().getSimpleName() + "Data";
 
-        switch (nodeTestElement.getClass().getSimpleName()) {
-            case "HTTPSamplerProxy":
-                getHttpSamplerData(prefix, (HTTPSamplerProxy) nodeTestElement, map);
-                break;
-            case "TransactionController":
-                getTransactionControllerData(prefix, (TransactionController) nodeTestElement, map);
-                break;
-            case "ModuleController":
-                getModuleControllerDate(prefix, (ModuleController) nodeTestElement, map);
-                break;
-            default:
+        try {
+            Method method = GetNodeData.class.getDeclaredMethod(methodName, String.class, nodeTestElement.getClass(), Map.class);
+            method.invoke(null, prefix, nodeTestElement, map);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+//            log.warn("{} - {}\n{}", e.getMessage(), methodName, e.getStackTrace());
         }
+
+//        switch (nodeTestElement.getClass().getSimpleName()) {
+//            case "HTTPSamplerProxy":
+//                getHttpSamplerData(prefix, (HTTPSamplerProxy) nodeTestElement, map);
+//                break;
+//            case "TransactionController":
+//                getTransactionControllerData(prefix, (TransactionController) nodeTestElement, map);
+//                break;
+//            case "ModuleController":
+//                getModuleControllerDate(prefix, (ModuleController) nodeTestElement, map);
+//                break;
+//            default:
+//        }
     }
 
-    public static void getHttpSamplerData(String prefix, HTTPSamplerProxy httpSampler, Map<String, String> map) {
+    public static void getHTTPSamplerProxyData(String prefix, HTTPSamplerProxy httpSampler, Map<String, String> map) {
         map.put(prefix + "name", httpSampler.getName());
         map.put(prefix + "comment", httpSampler.getComment());
         map.put(prefix + "protocol", httpSampler.getProtocol());

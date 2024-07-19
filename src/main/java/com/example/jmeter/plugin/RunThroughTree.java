@@ -33,21 +33,23 @@ public class RunThroughTree {
     private static final Logger log = LoggerFactory.getLogger(RunThroughTree.class);
 
     public RunThroughTree() {
-        logDebugOut = new StringBuilder("\n");
 
+        // ---------------БАЗОВЫЕ ПЕРЕМЕННЫЕ (RunThroughTree)---------------
+        logDebugOut = new StringBuilder("\n");
         JMeterTreeModel jMeterTreeModel = GuiPackage.getInstance().getTreeModel();
         JMeterTreeNode firstNode = jMeterTreeModel.getNodesOfType(Object.class).get(1);
 
+        // ---------------ПЕРЕМЕННЫЕ ГЛОБАЛЬНОГО УРОВНЯ (renameConfig)---------------
         reloadAllTree = renameConfig.get("reloadAllTree") != null && renameConfig.get("reloadAllTree").asBoolean();
-        printDebug = renameConfig.get("printDebug") != null && renameConfig.get("printDebug").asBoolean();
-
+        printDebug = renameConfig.get("debugEnable") != null && renameConfig.get("debugEnable").asBoolean();
         JsonNode vars = renameConfig.get("variables");
-        if (globalVariables != null) {
-            vars.fields().forEachRemaining(field -> globalVariables.put(field.getKey(), field.getValue().asText()));
-        }
-
         JsonNode counters = renameConfig.get("counters");
-        if (globalCounters != null) {
+
+        // ---------------ИНИЦИАЛИЗАЦИЯ ГЛОБАЛЬНОГО УРОВНЯ (renameConfig)---------------
+        if (vars != null)
+            vars.fields().forEachRemaining(field -> globalVariables.put(field.getKey(), field.getValue().asText()));
+
+        if (counters != null) {
             counters.fields().forEachRemaining(field -> {
                 String counterName = field.getKey();
                 JsonNode values = field.getValue();
@@ -59,12 +61,14 @@ public class RunThroughTree {
             });
         }
 
+        // ---------------ПРОБЕГ ПО ДЕРЕВУ---------------
         traverseAndRenameTree(firstNode, 0);
         GuiPackage.getInstance().refreshCurrentGui();
         GuiPackage.getInstance().getMainFrame().repaint();
-
         logDebugOut.append("-".repeat(50));
 
+
+        // ---------------ПОСТ ОБРАБОТКА---------------
         if (reloadAllTree)
             GuiPackage.getInstance().getTreeModel().reload();
 
@@ -77,6 +81,8 @@ public class RunThroughTree {
 
     private void traverseAndRenameTree(JMeterTreeNode treeNode, int level) {
         String currentNodeType = treeNode.getTestElement().getClass().getSimpleName();
+        JsonNode nodeProps = renameConfig.get("NodeProperties").findValue(currentNodeType);
+
         globalCounters.putIfAbsent(Integer.toString(level), new customCounter(0L, null, 1));
         logDebugOut.append(String.format("%d: %s\"%s\" (%s)\n",
                     level,
@@ -85,13 +91,16 @@ public class RunThroughTree {
                     currentNodeType
         ));
 
-        JsonNode nodeProps = renameConfig.get("NodeProperties").findValue(currentNodeType);
         if (nodeProps != null) {
             JsonNode skipDisabled = nodeProps.get("skipDisabled");
-            if (skipDisabled != null && skipDisabled.asBoolean() && !treeNode.isEnabled())
-                return;
+            JsonNode searchBlock = nodeProps.get("search");
+            JsonNode conditionsBlock = nodeProps.get("conditions");
+            JsonNode replaceJmeterVars = nodeProps.get("replaceJmeterVars");
+            JsonNode debugPrintConditionsResult = nodeProps.get("debugPrintConditionsResult");
 
             Map<String, String> nodeVariables = new HashMap<>();
+            String template = nodeProps.get("template").asText();
+
             Function<String, String> shortReplaceVariable = (str) ->
                     replaceVariables(str, nodeVariables, globalVariables, globalCounters, level);
 
@@ -102,12 +111,12 @@ public class RunThroughTree {
                     nodeVariables.put(varName, varValue);
             };
 
+            if (skipDisabled != null && skipDisabled.asBoolean() && !treeNode.isEnabled())
+                return;
+
             getNodeData("parent.", (JMeterTreeNode) treeNode.getParent(), nodeVariables);
             getNodeData("", treeNode, nodeVariables);
-//            getNodeData("next", (JMeterTreeNode) treeNode.children().nextElement(), nodeVariables);
-            String template = nodeProps.get("template").asText();
 
-            JsonNode searchBlock = nodeProps.get("search");
             if (searchBlock != null) {
                 for (JsonNode searchParam : searchBlock) {
                     String searchIn = shortReplaceVariable.apply(searchParam.get("searchIn").asText());
@@ -126,7 +135,6 @@ public class RunThroughTree {
                 }
             }
 
-            JsonNode conditionsBlock = nodeProps.get("conditions");
             if (conditionsBlock != null) {
                 for (JsonNode condition : conditionsBlock) {
                     JsonNode inParentType = condition.get("inParentType");
@@ -134,6 +142,8 @@ public class RunThroughTree {
                     JsonNode maxLevel = condition.get("maxLevel");
                     JsonNode strEquals = condition.get("strEquals");
                     JsonNode strContains = condition.get("strContains");
+                    JsonNode putVar = condition.get("putVar");
+                    JsonNode condTemplate = condition.get("template");
 
                     boolean bool_inParentType = inParentType == null ||
                             inParentType.asText().equals(getNodeType((JMeterTreeNode) treeNode.getParent()));
@@ -148,20 +158,22 @@ public class RunThroughTree {
                             shortReplaceVariable.apply(strContains.get(0).asText())
                             .contains(shortReplaceVariable.apply(strContains.get(1).asText()));
 
-                    String tabCount = "     ".repeat(level+1);
-                    logDebugOut.append(String.format(
+                    if (debugPrintConditionsResult != null && debugPrintConditionsResult.asBoolean()) {
+                        String tabCount = "     ".repeat(level + 1);
+                        logDebugOut.append(String.format(
                             tabCount + "bool_inParentType: %s\n" +
                             tabCount + "bool_currentLevel: %s\n" +
                             tabCount + "bool_maxLevel: %s\n" +
                             tabCount + "bool_strEquals: %s\n" +
                             tabCount + "bool_strContains: %s\n" +
                             tabCount + "-".repeat(10) + "\n",
-                            bool_inParentType,
-                            bool_currentLevel,
-                            bool_maxLevel,
-                            bool_strEquals,
-                            bool_strContains
-                    ));
+                                bool_inParentType,
+                                bool_currentLevel,
+                                bool_maxLevel,
+                                bool_strEquals,
+                                bool_strContains
+                        ));
+                    }
                     if (
                         bool_inParentType &&
                         bool_currentLevel &&
@@ -169,24 +181,28 @@ public class RunThroughTree {
                         bool_strEquals &&
                         bool_strContains
                     ) {
-                        JsonNode putVar = condition.get("putVar");
-                        if (putVar != null)
-                            shortVarPut.accept(putVar.get(0).asText(), shortReplaceVariable.apply(putVar.get(1).asText()));
-
-                        template = condition.get("template").asText();
+                        if (putVar != null || condTemplate != null) {
+                            if (putVar != null)
+                                shortVarPut.accept(putVar.get(0).asText(), shortReplaceVariable.apply(putVar.get(1).asText()));
+                            if (condTemplate != null)
+                                template = condTemplate.asText();
+                        } else
+                            return;
                         break;
                     }
-
                 }
             }
-
-            JsonNode replaceJmeterVars = nodeProps.get("replaceJmeterVars");
             if (replaceJmeterVars != null && replaceJmeterVars.asBoolean())
                 template = template.replaceAll("\\$\\{", "{");
-            treeNode.setName(shortReplaceVariable.apply(template));
+
+            template = shortReplaceVariable.apply(template);
+            if (!template.equals(nodeVariables.get("name"))) {
+//                log.info("No skipped Jmeter Node\nname: {}\ntemplate: {}\n----------", nodeVariables.get("name"), template);
+                treeNode.setName(template);
+                if (!reloadAllTree)
+                    GuiPackage.getInstance().getTreeModel().nodeChanged(treeNode);
+            }
         }
-        if (!reloadAllTree)
-            GuiPackage.getInstance().getTreeModel().nodeChanged(treeNode);
 
         Enumeration<?> children = treeNode.children();
         while (children.hasMoreElements()) {
