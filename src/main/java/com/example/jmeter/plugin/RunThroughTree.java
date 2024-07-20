@@ -88,7 +88,7 @@ public class RunThroughTree {
         JsonNode nodeProps = renameConfig.get("NodeProperties").findValue(currentNodeType);
 
         globalCounters.putIfAbsent(Integer.toString(level), new customCounter(0L, null, 1));
-        logDebugOut.append(String.format("%d: %s\"%s\" (%s)\n",
+        logDebugOut.append(String.format("%02d: %s\"%s\" (%s)\n",
                     level,
                     "|    ".repeat(level),
                     treeNode.getName(),
@@ -156,8 +156,18 @@ public class RunThroughTree {
                     JsonNode putVar = condition.get("putVar");
                     JsonNode condTemplate = condition.get("template");
 
-                    boolean bool_inParentType = inParentType == null ||
-                            inParentType.asText().equals(getNodeType((JMeterTreeNode) treeNode.getParent()));
+
+                    boolean bool_inParentType = inParentType == null;
+                    if (!bool_inParentType)
+                        for (JsonNode node : inParentType) {
+                            bool_inParentType = node.asText().equals(getNodeType((JMeterTreeNode) treeNode.getParent()));
+                            if (bool_inParentType)
+                                break;
+                        }
+
+//                    boolean bool_inParentType = inParentType == null ||
+//                            inParentType.asText().equals(getNodeType((JMeterTreeNode) treeNode.getParent()));
+
                     boolean bool_currentLevel = currentLevel == null ||
                             currentLevel.asInt() == level;
                     boolean bool_maxLevel = maxLevel == null ||
