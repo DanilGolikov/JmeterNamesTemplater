@@ -43,7 +43,7 @@ public class RunThroughTree {
 
         // ---------------ПЕРЕМЕННЫЕ ГЛОБАЛЬНОГО УРОВНЯ (renameConfig)---------------
         reloadAllTree = renameConfig.get("reloadAllTree") != null && renameConfig.get("reloadAllTree").asBoolean(); // default = false
-        printDebug = renameConfig.get("debugEnable") != null && renameConfig.get("debugEnable").asBoolean(); // default = false
+        printDebug = renameConfig.get("debugEnable") == null || renameConfig.get("debugEnable").asBoolean(); // default = true
         removeEmptyVars = renameConfig.get("removeEmptyVars") != null && renameConfig.get("removeEmptyVars").asBoolean(); // default = false
         replaceBlock = renameConfig.get("replace");
         JsonNode vars = renameConfig.get("variables");
@@ -97,13 +97,13 @@ public class RunThroughTree {
 
         if (nodeProps != null) {
             JsonNode skipDisabled = nodeProps.get("skipDisabled");
-            JsonNode searchBlock = nodeProps.get("search");
-            JsonNode conditionsBlock = nodeProps.get("conditions");
             JsonNode disableJmeterVars = nodeProps.get("disableJmeterVars");
             JsonNode debugPrintConditionsResult = nodeProps.get("debugPrintConditionsResult");
+            JsonNode searchBlock = nodeProps.get("search");
+            JsonNode conditionsBlock = nodeProps.get("conditions");
+            String template = nodeProps.get("template") == null ? null : nodeProps.get("template").asText();
 
             Map<String, String> nodeVariables = new HashMap<>();
-            String template = nodeProps.get("template") == null ? null : nodeProps.get("template").asText();
 
             Function<String, String> shortReplaceVariable = (str) ->
                     replaceVariables(str, nodeVariables, globalVariables, globalCounters, level);
@@ -125,10 +125,11 @@ public class RunThroughTree {
                 for (JsonNode searchParam : searchBlock) {
                     String searchIn = shortReplaceVariable.apply(searchParam.get("searchIn").asText());
                     String searchReg = searchParam.get("searchReg").asText();
-                    String searchOutVar = searchParam.get("searchOutVar").asText();
-                    String searchDefault = searchParam.get("searchDefault").asText();
                     int searchRegGroup = searchParam.get("searchRegGroup").asInt();
+                    String searchOutVar = searchParam.get("searchOutVar").asText();
                     JsonNode leftRightSymbols = searchParam.get("leftRightSymbols");
+                    String searchDefault = searchParam.get("searchDefault").asText();
+
                     String left = (leftRightSymbols != null) ? leftRightSymbols.get(0).asText() : "";
                     String right = (leftRightSymbols != null) ? leftRightSymbols.get(1).asText() : "";
 
@@ -145,11 +146,11 @@ public class RunThroughTree {
             if (conditionsBlock != null) {
                 for (JsonNode condition : conditionsBlock) {
                     JsonNode inParentType = condition.get("inParentType");
-                    JsonNode currentLevel = condition.get("currentLevel");
-                    JsonNode maxLevel = condition.get("maxLevel");
-                    JsonNode minLevel = condition.get("minLevel");
                     JsonNode strEquals = condition.get("strEquals");
                     JsonNode strContains = condition.get("strContains");
+                    JsonNode minLevel = condition.get("minLevel");
+                    JsonNode maxLevel = condition.get("maxLevel");
+                    JsonNode currentLevel = condition.get("currentLevel");
                     JsonNode leftRightSymbols = condition.get("leftRightSymbols");
                     JsonNode skip = condition.get("skip");
                     JsonNode counterCommands = condition.get("counterCommands");
