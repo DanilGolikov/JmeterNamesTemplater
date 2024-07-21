@@ -2,67 +2,8 @@
   "debugEnable": true,
   "reloadAllTree": false,
   "removeEmptyVars": false,
-  "replace": [
-    ["null_", "", "HTTPSamplerProxy"],
-    ["http_", ""]
-  ],
-  "NodeProperties": {
-    "HTTPSamplerProxy": {
-      "disableJmeterVars": true,
-      "search": [
-        {
-          "searchIn": "#{name}",
-          "searchReg": "(VAR.*)",
-          "searchRegGroup": 1,
-          "searchOutVar": "global.testGlobalVar_2",
-          "leftRightSymbols": ["|", "|"],
-          "searchDefault": "null"
-        }
-      ],
-      "conditions": [
-        {
-          "inParentType": "TransactionController",
-          "template": "TC"
-        }
-      ],
-      "template": "#{global.testGlobalVar_2}_#{__counter(current,,02)}_#{protocol}_#{param.3}"
-    },
-    "TransactionController": {
-      "disableJmeterVars": false,
-      "skipDisabled": false,
-      "debugPrintConditionsResult": true,
-      "conditions": [
-        {
-          "inParentType": "ThreadGroup",
-          "strEquals": ["#{name}", "#{name}"],
-          "strContains": ["#{name}", "T"],
-          "maxLevel": 2,
-          "currentLevel": 2,
-          "leftRightSymbols": ["|", "|"],
-          "skip": false,
-          "counterCommands": "",
-          "putVar": ["global.testGlobalVar_2", "teeeeeest"],
-          "template": "cond1_#{global.testGlobalVar_2}_#{__counter(current,,02)}"
-        }
-      ],
-      "template": "default|#{__counter(current,,)}|#{__counter(myCounter,getAndAdd,03)}|#{__counter(myCounter2,getAndAdd,03)}"
-    }
-  },
-  "variables": {
-    "testGlobalVar_1": "GLOBAL_VAR_1",
-    "testGlobalVar_2": "GLOBAL_VAR_2",
-    "testGlobalVar_3": 999
-  },
-  "counters": {
-    "myCounter": {
-      "startValue": 1,
-      "endValue": 3,
-      "increment": 1
-    },
-    "myCounter2": {
-      "startValue": 15,
-      "endValue": 30,
-      "increment": 5
-    }
-  }
+  "replace": [],
+  "NodeProperties": {},
+  "variables": {},
+  "counters": {}
 }

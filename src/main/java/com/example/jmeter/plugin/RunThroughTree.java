@@ -182,7 +182,7 @@ public class RunThroughTree {
                             shortReplaceVariable.apply(strContains.get(0).asText())
                             .contains(shortReplaceVariable.apply(strContains.get(1).asText()));
 
-                    if (debugPrintConditionsResult != null && debugPrintConditionsResult.asBoolean()) {
+                    if (debugPrintConditionsResult != null && debugPrintConditionsResult.asBoolean()) { // default = false
                         String tabCount = "     ".repeat(level + 1);
                         logDebugOut.append(String.format(
                             tabCount + "bool_inParentType: %s\n" +

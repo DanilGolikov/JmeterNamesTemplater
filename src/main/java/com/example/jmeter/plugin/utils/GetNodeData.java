@@ -98,7 +98,6 @@ public class GetNodeData {
 
     public static void getLoopControllerData(String prefix, LoopController loopController, Map<String, String> map) {
         map.put(prefix + "loopString", loopController.getLoopString());
-        map.put(prefix + "loopCount", String.valueOf(loopController.getLoops()));
     }
 
     public static void getWhileControllerData(String prefix, WhileController whileController, Map<String, String> map) {
@@ -138,8 +137,6 @@ public class GetNodeData {
     ##########################
      */
     public static void getJSONPostProcessorData(String prefix, JSONPostProcessor jsonPostProcessor, Map<String, String> map) {
-        map.put(prefix + "name", jsonPostProcessor.getName());
-        map.put(prefix + "comment", jsonPostProcessor.getComment());
         map.put(prefix + "varName", jsonPostProcessor.getVariableName());
         map.put(prefix + "jsonPath", jsonPostProcessor.getJsonPathExpressions());
         map.put(prefix + "matchNumber", jsonPostProcessor.getMatchNumbers());
@@ -147,8 +144,6 @@ public class GetNodeData {
     }
 
     public static void getJMESPathExtractorData(String prefix, JMESPathExtractor jmesPathExtractor, Map<String, String> map) {
-        map.put(prefix + "name", jmesPathExtractor.getName());
-        map.put(prefix + "comment", jmesPathExtractor.getComment());
         map.put(prefix + "varName", jmesPathExtractor.getVariableName());
         map.put(prefix + "jmesPath", jmesPathExtractor.getJmesPathExpression());
         map.put(prefix + "matchNumber", jmesPathExtractor.getMatchNumber());
@@ -156,8 +151,6 @@ public class GetNodeData {
     }
 
     public static void getBoundaryExtractorData(String prefix, BoundaryExtractor boundaryExtractor, Map<String, String> map) {
-        map.put(prefix + "name", boundaryExtractor.getName());
-        map.put(prefix + "comment", boundaryExtractor.getComment());
         map.put(prefix + "varName", boundaryExtractor.getVariableName());
         map.put(prefix + "leftBoundary", boundaryExtractor.getLeftBoundary());
         map.put(prefix + "rightBoundary", boundaryExtractor.getRightBoundary());
@@ -166,8 +159,6 @@ public class GetNodeData {
     }
 
     public static void getRegexExtractorData(String prefix, RegexExtractor regexExtractor, Map<String, String> map) {
-        map.put(prefix + "name", regexExtractor.getName());
-        map.put(prefix + "comment", regexExtractor.getComment());
         map.put(prefix + "varName", regexExtractor.getVariableName());
         map.put(prefix + "regex", regexExtractor.getRegex());
         map.put(prefix + "template", regexExtractor.getTemplate());
