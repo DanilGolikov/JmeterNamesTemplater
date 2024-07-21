@@ -7,7 +7,33 @@ Jmeter Names Templater - это плагин для Jmeter, который по�
 1. Скопируйте файл плагина в папку `lib/ext` вашего Jmeter.
 2. Перезапустите Jmeter.
 
-### Файл конфигурации
+## Использование
+После установки jar файла. В Jmeter появится новая кнопка. При нажатии каждый раз заного считывается конфиг файла
+![image](https://github.com/user-attachments/assets/e39e8f75-9f1e-4b71-ac4f-71999a50d421)
+После нажатия так же в логах Jmeter пишется дерево элементов, которое несет дополнительную информацию об уровне элемента и о типе (Если флаг debugEnable = true)
+Пример:
+```
+2024-07-21 21:05:58,393 INFO c.e.j.p.RunThroughTree: 
+00: "Test Plan" (TestPlan)
+01: |    "Thread Group" (ThreadGroup)
+02: |    |    "Transaction Controller" (TransactionController)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+02: |    |    "Transaction Controller" (TransactionController)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+03: |    |    |    "HTTP Request" (HTTPSamplerProxy)
+--------------------------------------------------
+```
+
+## Файл конфигурации
 
 Файл `renameConfig.json` используется для описания шаблонов для элементов. Файл конфигурации находится в `jmeter/bin/rename-config.json`</br>
 Пример структуры файла:
