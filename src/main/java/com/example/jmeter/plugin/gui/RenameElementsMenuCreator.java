@@ -19,7 +19,7 @@ public class RenameElementsMenuCreator implements MenuCreator {
         if (menuLocation == MenuCreator.MENU_LOCATION.RUN)
             try {
                 CheckCreateRenameConfig();
-                return new JMenuItem[] {new RenameElementsMenuItem()};
+                return new JMenuItem[] {new PrintTreeItem() ,new RenameSelectedTreeItem(), new RenameTreeItem()};
             } catch (Throwable e) {
                 log.error("Failed to load rename elements", e);
                 return new JMenuItem[0];

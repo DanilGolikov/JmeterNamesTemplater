@@ -7,22 +7,18 @@ import org.apache.jmeter.gui.util.JMeterToolBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JMenuItem;
-import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
-import javax.swing.JButton;
-
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import static com.example.jmeter.plugin.utils.RenameUtils.CheckCreateRenameConfig;
 
-public class RenameElementsMenuItem extends JMenuItem implements ActionListener {
-    private static final Logger log = LoggerFactory.getLogger(RenameElementsMenuItem.class);
+public class RenameSelectedTreeItem extends JMenuItem implements ActionListener {
+    private static final Logger log = LoggerFactory.getLogger(RenameSelectedTreeItem.class);
 
-    public RenameElementsMenuItem() {
-        super("Rename elements", new ImageIcon(RenameElementsMenuItem.class.getResource("/renameIcon16.png")));
+    public RenameSelectedTreeItem() {
+        super("Rename Selected Tree", new ImageIcon(RenameSelectedTreeItem.class.getResource("/renameSelectedTreeIcon16.png")));
         addActionListener(this);
         addToolbarIcon();
     }
@@ -52,8 +48,8 @@ public class RenameElementsMenuItem extends JMenuItem implements ActionListener 
     }
 
     private Component getToolbarButton() {
-        JButton button = new JButton(new ImageIcon(RenameElementsMenuItem.class.getResource("/renameIcon22.png")));
-        button.setToolTipText("MyCustomButton");
+        JButton button = new JButton(new ImageIcon(RenameSelectedTreeItem.class.getResource("/renameSelectedTreeIcon22.png")));
+        button.setToolTipText("Rename Selected Tree");
         button.addActionListener(this);
         return button;
     }
@@ -61,6 +57,6 @@ public class RenameElementsMenuItem extends JMenuItem implements ActionListener 
     @Override
     public void actionPerformed(ActionEvent e) {
         CheckCreateRenameConfig();
-        new RunThroughTree();
+        new RunThroughTree(true);
     }
 }
