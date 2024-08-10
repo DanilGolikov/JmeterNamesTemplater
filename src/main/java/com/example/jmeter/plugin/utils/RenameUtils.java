@@ -64,47 +64,43 @@ public class RenameUtils {
         for (Map.Entry<String, String> entry : globalVariables.entrySet())
             str = str.replace("#{global." + entry.getKey() + "}", entry.getValue());
 
-        Pattern counterPattern = Pattern.compile("#\\{__counter\\((.+?)\\)}");
+        Pattern counterPattern = Pattern.compile("#\\{([^}]*)\\((.*?)\\)}");
         Matcher counterMatcher = counterPattern.matcher(str);
         while (counterMatcher.find()) {
             String placeHolder = counterMatcher.group();
-            String[] counterParams = counterMatcher.group(1).split(",", -1);
-            String counterName = counterParams[0];
-            String counterCommand = counterParams[1];
-            String counterFormat = counterParams[2];
-            String counterIndex;
+            String counterName = counterMatcher.group(1);
+            String[] counterParams = counterMatcher.group(2).split(",", -1);
+            String counterCommand = counterParams.length > 0 ? counterParams[0] : "getAndAdd";
+            String counterFormat = counterParams.length > 1 ? counterParams[1] : "";
             long counterValue;
 
-            switch (counterName) {
-                case "current":
-                    counterIndex = Integer.toString(level);
-                    break;
-                case "parent":
-                    counterIndex = Integer.toString(level - 1);
-                    break;
-                default:
-                    counterIndex = counterName;
-            }
+//            switch (counterName) {
+//                case "current":
+//                    counterName = Integer.toString(level);
+//                    break;
+//                case "parent":
+//                    counterName = Integer.toString(level - 1);
+//                    break;
+//            }
 
             try {
                 switch (counterCommand) {
                     case "get":
-                        counterValue = counters.get(counterIndex).get();
+                        counterValue = counters.get(counterName).get();
                         break;
                     case "resetAndGet":
-                        counterValue = counters.get(counterIndex).resetAndGet();
-                        break;
-                    case "getAndAdd":
-                        counterValue = counters.get(counterIndex).getAndAdd();
+                        counterValue = counters.get(counterName).resetAndGet();
                         break;
                     case "addAndGet":
+                        counterValue = counters.get(counterName).addAndGet();
+                        break;
+                    case "getAndAdd":
                     default:
-                        counterValue = counters.get(counterIndex).addAndGet();
+                        counterValue = counters.get(counterName).getAndAdd();
                 }
                 str = str.replace(placeHolder, String.format("%" + counterFormat +  "d", counterValue));
             } catch (NullPointerException ignore) {}
         }
-
         return str;
     }
 }

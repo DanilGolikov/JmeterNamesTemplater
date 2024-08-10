@@ -8,6 +8,7 @@ import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.StreamSupport;
 
 import static com.example.jmeter.plugin.utils.GetNodeData.*;
 import static com.example.jmeter.plugin.utils.RenameUtils.replaceVariables;
@@ -29,6 +31,7 @@ public class RunThroughTree {
 
     public static Map<String, String> globalVariables = new HashMap<>();
     public static Map<String, customCounter> globalCounters = new HashMap<>();
+    public static Map<String, ArrayList<JsonNode>> counterConditions = new HashMap<>();
 
     private final StringBuilder logDebugOut;
     private final boolean removeEmptyVars;
@@ -57,10 +60,16 @@ public class RunThroughTree {
             counters.fields().forEachRemaining(field -> {
                 String counterName = field.getKey();
                 JsonNode values = field.getValue();
-                Long counterStart = values.get("startValue") == null ? 0L : values.get("startValue").asLong();
-                Long counterEnd = values.get("endValue") == null ? null : values.get("endValue").asLong();
+                Long counterStart = values.get("start") == null ? 0L : values.get("start").asLong();
+                Long counterEnd = values.get("end") == null ? null : values.get("end").asLong();
                 int counterIncrement = values.get("increment") == null ? 1 : values.get("increment").asInt();
 
+                JsonNode resetIf = values.get("resetIf");
+                if (resetIf != null) {
+                    counterConditions.put(counterName, new ArrayList<>());
+                    for (JsonNode condition : resetIf)
+                        counterConditions.get(counterName).add(condition);
+                }
                 globalCounters.put(counterName, new customCounter(counterStart, counterEnd, counterIncrement));
             });
         }
@@ -81,19 +90,37 @@ public class RunThroughTree {
 
         globalVariables.clear();
         globalCounters.clear();
+        counterConditions.clear();
     }
 
     private void traverseAndRenameTree(JMeterTreeNode treeNode, int level) {
         String currentNodeType = treeNode.getTestElement().getClass().getSimpleName();
         JsonNode nodeProps = renameConfig.get("NodeProperties").findValue(currentNodeType);
 
-        globalCounters.putIfAbsent(Integer.toString(level), new customCounter(0L, null, 1));
+//        globalCounters.putIfAbsent(Integer.toString(level), new customCounter(0L, null, 1));
         logDebugOut.append(String.format("%02d: %s\"%s\" (%s)\n",
                     level,
                     "|    ".repeat(level),
                     treeNode.getName(),
                     currentNodeType
         ));
+
+        for (String counterName : counterConditions.keySet()) {
+            for (JsonNode condition : counterConditions.get(counterName)) {
+                JsonNode levelEquals = condition.get("levelEquals");
+                JsonNode nodeType = condition.get("nodeType");
+
+                boolean bool_levelEquals = levelEquals == null || StreamSupport.stream(levelEquals.spliterator(), false)
+                        .anyMatch(value -> level == value.asInt());
+                boolean bool_nodeType = nodeType == null || StreamSupport.stream(nodeType.spliterator(), false)
+                        .anyMatch(value -> currentNodeType.equals(value.asText()));
+
+                if (bool_levelEquals && bool_nodeType) {
+                    globalCounters.get(counterName).resetAndGet();
+                    break;
+                }
+            }
+        }
 
         if (nodeProps != null) {
             JsonNode skipDisabled = nodeProps.get("skipDisabled");
@@ -123,21 +150,23 @@ public class RunThroughTree {
 
             if (searchBlock != null) {
                 for (JsonNode searchParam : searchBlock) {
-                    String searchIn = shortReplaceVariable.apply(searchParam.get("searchIn").asText());
-                    String searchReg = searchParam.get("searchReg").asText();
-                    int searchRegGroup = searchParam.get("searchRegGroup").asInt();
-                    String searchOutVar = searchParam.get("searchOutVar").asText();
-                    JsonNode leftRightSymbols = searchParam.get("leftRightSymbols");
-                    String searchDefault = searchParam.get("searchDefault").asText();
+                    JsonNode searchIn = searchParam.get("searchIn");
+                    String searchString = shortReplaceVariable.apply(searchIn.get(0).asText());
+                    String searchRegex = searchIn.get(1).asText();
 
-                    String left = (leftRightSymbols != null) ? leftRightSymbols.get(0).asText() : "";
-                    String right = (leftRightSymbols != null) ? leftRightSymbols.get(1).asText() : "";
+                    JsonNode searchOut = searchParam.get("searchOut");
+                    String searchOutVar = searchOut.get(0).asText();
+                    String searchTemplate = searchOut.get(1).asText();
+                    String searchDefault = searchOut.get(2).asText();
 
-                    Pattern searchPattern = Pattern.compile(searchReg);
-                    Matcher matcher = searchPattern.matcher(searchIn);
+                    Pattern pattern = Pattern.compile(searchRegex);
+                    Matcher matcher = pattern.matcher(searchString);
                     String result = searchDefault;
-                    if (matcher.find())
-                        result = left + matcher.group(searchRegGroup) + right;
+                    if (matcher.find()) {
+                        for (int i = 1; i <= matcher.groupCount(); i++)
+                            searchTemplate = searchTemplate.replace("$" + i, matcher.group(i));
+                        result = searchTemplate;
+                    }
 
                     shortVarPut.accept(searchOutVar, result);
                 }
@@ -158,17 +187,8 @@ public class RunThroughTree {
                     JsonNode condTemplate = condition.get("template");
 
 
-                    boolean bool_inParentType = inParentType == null;
-                    if (!bool_inParentType)
-                        for (JsonNode node : inParentType) {
-                            bool_inParentType = node.asText().equals(getNodeType((JMeterTreeNode) treeNode.getParent()));
-                            if (bool_inParentType)
-                                break;
-                        }
-
-//                    boolean bool_inParentType = inParentType == null ||
-//                            inParentType.asText().equals(getNodeType((JMeterTreeNode) treeNode.getParent()));
-
+                    boolean bool_inParentType = inParentType == null || StreamSupport.stream(inParentType.spliterator(), false)
+                            .anyMatch(node -> node.asText().equals(getNodeType((JMeterTreeNode) treeNode.getParent())));
                     boolean bool_currentLevel = currentLevel == null ||
                             currentLevel.asInt() == level;
                     boolean bool_maxLevel = maxLevel == null ||
