@@ -180,7 +180,6 @@ public class RunThroughTree {
                     JsonNode minLevel = condition.get("minLevel");
                     JsonNode maxLevel = condition.get("maxLevel");
                     JsonNode currentLevel = condition.get("currentLevel");
-                    JsonNode leftRightSymbols = condition.get("leftRightSymbols");
                     JsonNode skip = condition.get("skip");
                     JsonNode counterCommands = condition.get("counterCommands");
                     JsonNode putVar = condition.get("putVar");
@@ -231,11 +230,8 @@ public class RunThroughTree {
                         if (skip != null && skip.asBoolean()) // default = false
                             return;
                         if (putVar != null || condTemplate != null || counterCommands != null) {
-                            if (putVar != null) {
-                                String left = (leftRightSymbols != null) ? leftRightSymbols.get(0).asText() : "";
-                                String right = (leftRightSymbols != null) ? leftRightSymbols.get(1).asText() : "";
-                                shortVarPut.accept(putVar.get(0).asText(), left + shortReplaceVariable.apply(putVar.get(1).asText()) + right);
-                            }
+                            if (putVar != null)
+                                shortVarPut.accept(putVar.get(0).asText(), shortReplaceVariable.apply(putVar.get(1).asText()));
                             if (condTemplate != null)
                                 template = condTemplate.asText();
                             if (counterCommands != null)

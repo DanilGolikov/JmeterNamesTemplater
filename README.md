@@ -26,14 +26,10 @@ Jmeter Names Templater - это плагин для Jmeter, который по�
             "disableJmeterVars": true,
             "debugPrintConditionsResult": true,
             "search": [
-                {
-                    "searchIn": "#{name}",
-                    "searchReg": "(VAR.*)",
-                    "searchRegGroup": 1,
-                    "searchOutVar": "global.testGlobalVar_2",
-                    "leftRightSymbols": ["|", "|"],
-                    "searchDefault": "null"
-                }
+              {
+                "searchIn": ["#{name}", "_(\\d{3})_"],
+                "searchOut": ["global.testGlobalVar_2", "_$1", ""]
+              }
             ],
             "conditions": [
                 {
@@ -47,10 +43,10 @@ Jmeter Names Templater - это плагин для Jmeter, который по�
                     "skip": false,
                     "counterCommands": "",
                     "putVar": ["global.testGlobalVar_2", "test"],
-                    "template": "cond1_#{global.testGlobalVar_2}_#{__counter(current,,02)}"
+                    "template": "cond1_#{global.testGlobalVar_2}_#{myCounter(,02)}"
                 }
             ],
-            "template": "#{global.testGlobalVar_2}_#{__counter(current,,02)}_#{protocol}_#{param.3}"
+            "template": "#{global.testGlobalVar_2}_#{myCounter(,02)}_#{protocol}_#{param.3}"
         }
     },
     "variables": {
@@ -60,13 +56,19 @@ Jmeter Names Templater - это плагин для Jmeter, который по�
     },
     "counters": {
         "myCounter": {
-            "startValue": 1,
-            "endValue": 3,
-            "increment": 1
+            "start": 1,
+            "end": 3,
+            "increment": 1,
+            "resetIf": [
+                {
+                    "levelEquals": [3],
+                    "nodeType": ["TransactionController", "HTTPSamplerProxy"]
+                }
+            ]
         },
         "myCounter2": {
-            "startValue": 15,
-            "endValue": 30,
+            "start": 15,
+            "end": 30,
             "increment": 5
         }
     }
