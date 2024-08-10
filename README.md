@@ -39,7 +39,6 @@ Jmeter Names Templater - это плагин для Jmeter, который по�
                     "minLevel": 2,
                     "maxLevel": 4,
                     "currentLevel": 2,
-                    "leftRightSymbols": ["|", "|"],
                     "skip": false,
                     "counterCommands": "",
                     "putVar": ["global.testGlobalVar_2", "test"],
