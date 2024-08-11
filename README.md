@@ -9,7 +9,7 @@ Jmeter Names Templater is a plugin for Jmeter that allows you to set naming temp
 
 ## Usage
 After installing the jar file, a new button will appear in Jmeter. Each time you press it, the configuration file is re-read
-![image](https://github.com/user-attachments/assets/e39e8f75-9f1e-4b71-ac4f-71999a50d421)
+![image](https://github.com/user-attachments/assets/a5e3d7ed-a1d9-40ee-affe-6ad2dd78d399)
 
 After pressing the buttons, the Jmeter logs will also display the element tree, providing additional information about the element's level and type (if the debugEnable flag is set to true)
 `Rename Tree Button` - traverses the tree and starts renaming from the beginning of the Test Plan
