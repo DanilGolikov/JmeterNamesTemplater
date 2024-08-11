@@ -1,17 +1,21 @@
 Jmeter Names Templater
 
-Jmeter Names Templater - это плагин для Jmeter, который позволяет задавать шаблоны наименования элементам и переименовывать их на основе описанного конфигурационного файла.
+Jmeter Names Templater is a plugin for Jmeter that allows you to set naming templates for elements and rename them based on a described configuration file.
 
-## Установка
+## Installation
 
-1. Скопируйте файл плагина в папку `lib/ext` вашего Jmeter.
-2. Перезапустите Jmeter.
+1. Copy the plugin file to the `lib/ext` folder of your Jmeter installation.
+2. Restart Jmeter.
 
-## Использование
-После установки jar файла. В Jmeter появится новая кнопка. При нажатии каждый раз заного считывается конфиг файла
+## Usage
+After installing the jar file, a new button will appear in Jmeter. Each time you press it, the configuration file is re-read
 ![image](https://github.com/user-attachments/assets/e39e8f75-9f1e-4b71-ac4f-71999a50d421)
-После нажатия так же в логах Jmeter пишется дерево элементов, которое несет дополнительную информацию об уровне элемента и о типе (Если флаг debugEnable = true)
-Пример:
+
+After pressing the buttons, the Jmeter logs will also display the element tree, providing additional information about the element's level and type (if the debugEnable flag is set to true)
+`Rename Tree Button` - traverses the tree and starts renaming from the beginning of the Test Plan
+`Rename Selected Tree Button` - starts traversing the tree from the selected element, and only the elements under the selected item will be renamed
+`Print Tree Button` - logs the tree without performing any actions
+Example:
 ```
 2024-07-21 21:05:58,393 INFO c.e.j.p.RunThroughTree: 
 00: "Test Plan" (TestPlan)
@@ -33,10 +37,9 @@ Jmeter Names Templater - это плагин для Jmeter, который по�
 --------------------------------------------------
 ```
 
-## Файл конфигурации
-
-Файл `renameConfig.json` используется для описания шаблонов для элементов. Файл конфигурации находится в `jmeter/bin/rename-config.json`</br>
-Пример структуры файла:
+## Configuration File
+The `renameConfig.json` file is used to describe templates for elements. The configuration file is located in `jmeter/bin/rename-config.json`</br>
+Example of the file structure:
 ```json
 {
     "debugEnable": true,
@@ -100,95 +103,108 @@ Jmeter Names Templater - это плагин для Jmeter, который по�
 }
 ```
 
-### Описание полей конфигурационного файла
+### Configuration File Fields Description
+```
+- debugEnable [Bool] - Displays the full script tree in the logs. Default - true
+- reloadAllTree [Bool] - Reloads the entire tree after renaming. Default - false. Used to revert the entire tree after renaming
+- removeEmptyVars [Bool] - Removes empty variable templates from the new name ("#{var}" -> ""). Default - false
 
-| Поле                               | Тип    | Описание                                                                                                                             |
-|------------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `debugEnable`                      | Bool   | Отображать в логах полное дерево скрипта. По умолчанию - true.                                                                       |
-| `reloadAllTree`                    | Bool   | Перезагружать после переименования полностью дерево. По умолчанию - false. Используется для отката всего дерева после переименования |
-| `removeEmptyVars`                  | Bool   | Удалять ли шаблоны переменных, которые оказались пустыми из нового имени ("#{var}" -> ""). По умолчанию - false.                     |
-| `replace`                          | Array  | Массив из значений, которые нужно заменить.                                                                                          |
-| `replace[0]`                       | String | Строка, которую нужно заменить (поддерживаются регулярные выражения).                                                                |
-| `replace[1]`                       | String | На что нужно заменить (поддерживается обращение к группам через $, $1, $2, ...).                                                     |
-| `replace[2]`                       | String | В каком элементе выполнять замену (Не обязательный. Если не указан, замена будет выполнена во всех элементах).                       |
-| `NodeProperties`                   | Object | Описывает шаблоны для нужных типов элементов.                                                                                        |
-| `NodeProperties[nodeType]`         | Object | Наименование класса элемента (отображается в логах Jmeter при нажатии на кнопку).                                                    |
-| `skipDisabled`                     | Bool   | Пропускать ли выключенные элементы. По умолчанию - false.                                                                            |
-| `disableJmeterVars`                | Bool   | Деактивировать ли переменные Jmeter ("${}" -> "{}"). По умолчанию - true.                                                            |
-| `debugPrintConditionsResult`       | Bool   | Отображать результаты условий. По умолчанию - false.                                                                                 |
-| `search`                           | Array  | Массив поисков.                                                                                                                      |
-| `search[*].searchIn`               | String | Строка, в которой будет выполняться поиск. Можно использовать переменные.                                                            |
-| `search[*].searchReg`              | String | Что нужно искать. Можно использовать регулярные выражения. Обязательно наличие группы.                                               |
-| `search[*].searchRegGroup`         | Int    | Группа, которая будет записана в переменную.                                                                                         |
-| `search[*].searchOutVar`           | String | Название переменной, куда будет записан результат. Можно использовать модификаторы области (global., parent., ...).                  |
-| `search[*].leftRightSymbols`       | Array  | Символы, которые будут добавлены в итоговое значение. По умолчанию - ["", ""].                                                       |
-| `search[*].searchDefault`          | String | Значение, которое будет использовано, если ничего не будет найдено.                                                                  |
-| `conditions`                       | Array  | Массив условий. Пробегается до первого полностью выполненного условия для текущего элемента.                                         |
-| `conditions[*].inParentType`       | Array  | Массив типов элементов. Проверяет, находится ли текущий элемент в одном из указанных элементов.                                      |
-| `conditions[*].strEquals[0]`       | String | Проверяет, равна ли строка значению. Можно использовать переменные.                                                                  |
-| `conditions[*].strEquals[1]`       | String | Чему равна строка.                                                                                                                   |
-| `conditions[*].strContains[0]`     | String | Проверяет наличие подстроки в строке.                                                                                                |
-| `conditions[*].strContains[1]`     | String | Подстрока.                                                                                                                           |
-| `conditions[*].minLevel`           | Int    | Проверяет, больше ли либо равен текущий уровень элемента значению.                                                                   |
-| `conditions[*].maxLevel`           | Int    | Проверяет, меньше ли либо равен текущий уровень элемента значению.                                                                   |
-| `conditions[*].currentLevel`       | Int    | Проверяет, равен ли текущий уровень элемента значению.                                                                               |
-| `conditions[*].skip`               | Bool   | Пропустить элемент, т.е. не выполнять никаких действий с ним.                                                                        |
-| `conditions[*].counterCommands`    | String | Строка, в которой можно менять значения счетчиков через обычный вызов.                                                               |
-| `conditions[*].putVar[0]`          | String | Создать либо изменить переменную.                                                                                                    |
-| `conditions[*].putVar[1]`          | String | Значение, которое нужно сохранить. Можно использовать переменные.                                                                    |
-| `conditions[*].template`           | String | Шаблон, который будет применен для элемента.                                                                                         |
-| `template`                         | String | Шаблон для элемента по умолчанию, если все блоки условий false.                                                                      |
-| `variables`                        | Object | Создание переменных, видимых на всех уровнях дерева. Обращение к ним происходит с префиксом global., например, #{global.varName}.    |
-| `variables[varName]`               | String | Значение переменной.                                                                                                                 |
-| `counters`                         | Object | Создание счетчиков со своими настройками.                                                                                            |
-| `counters[counterName]`            | Object | Имя счетчика.                                                                                                                        |
-| `counters[counterName].startValue` | Int    | Начало счетчика (по умолчанию 0).                                                                                                    |
-| `counters[counterName].endValue`   | Int    | Конец счетчика (по умолчанию null (нет конца)).                                                                                      |
-| `counters[counterName].increment`  | Int    | Прирост (по умолчанию 1).                                                                                                            |
+- replace [Array Arrays] - Array of values that need to be replaced
+    - replace[0] [String] - The string to be replaced (supports regular expressions)
+    - replace[1] [String] - The replacement string (supports group references using $, $1, $2, ...)
+    - replace[2] [String] - The element in which the replacement should be performed (Optional. If not specified, the replacement will be done in all elements)
 
-### Обращение к счетчикам
-Пример обращения к счетчикам:</br>
-`#{__counter(name,command,format)}` - ВАЖНО! Если не указывать последние 2 параметра, то обязательно нужно сохранить запятые т.е. `#{__counter(name,,)}`</br>
-`name` - имя счетчика. Важно отметить, что для каждого уровня вложенности в дереве, создается свой уникальный счетчик, с именем уровня. Так же для обращения к таким счетчикам можно использовать current (подставиться номер текущего уровня) и parent (номер уровня родителя)</br>
-`command` - команда отвечающее за возвращаемое значение счетчика. По умолчанию указывается addAndGet</br>
-get - получить текущее число счетчика</br>
-resetAndGet - сбросить счетчик до начального значения и вернуть число</br>
-getAndAdd - получить текущее число счетчика, и добавить implement</br>
-addAndGet - добавить implement, и получить текущее число счетчика</br>
-`format` - выравнивание по длине, например если число счетчика 5, а формат 03, то вернется 005</br>
+- NodeProperties [Object] - Describes templates for specific types of elements
+    - nodeType [Object] - The name of the element's class (displayed in the Jmeter logs when the buttons is pressed)
+        - skipDisabled [Bool] - Whether to skip disabled elements. Default - false
+        - disableJmeterVars [Bool] - Whether to deactivate Jmeter variables ("${}" -> "{}"). Default - true
+        - debugPrintConditionsResult [Bool] - Whether to display the results of conditions. Default  - false
+        
+        - search [Array Objects] - Array of searches
+            - searchIn [Array] - Block for specifying search criteria
+                - searchIn[0] [String] - The string in which the search will be performed (variables can be used)
+                - searchIn[1] [String] - The regular expression for the search
+            - searchOut [Array] - Block for search results
+                - searchOut[0] [String] - The variable to which the search result will be assigned
+                - searchOut[1] [String] - Template for the search result. Group references can be made using `$N`
+                - searchOut[2] [String] - Default value if no results were found
 
-### Блок условий
-Поля в блоке условий деляться на 2 типа - условия и действия</br>
-Условия - `inParentType`, `strEquals`, `strContains`, `minLevel`, `maxLevel`, `currentLevel`</br>
-Дейсвия - `skip`, `counterCommands`, `putVar`, `leftRightSymbols`, `template`, `counterCommands`</br>
-Действия выполняются только тогда, когда все указанные условия true</br>
-Условия и действия можно комбинировать как угодно, но важно отметить, что условия работают по принципу condition AND condition</br>
-В логах, при флаге `debugPrintConditionsResult = true`, можно увидить что типы условий, которые не указаны в блоке равны true, это необходимо для работы</br>
-Описание действий:</br>
-    1) `skip` - если он true, то никаких действий с элементом не производится. Так же остальные действия не выполняются</br>
-    2) `putVar` - создание либо изменение переменной. Можно использовать модификаторы `global.`, `parent.`, .... `leftRightSymbols` - дополнительное действие, которое выполняется только в связке с putVar</br>
-    3) `template` - шаблон который будет применен к элементу</br>
-    4) `counterCommands` - строка в которой можно вызвать счетчик (Работа со счетчиками описана выше)</br>
-Если в блоке conditions несколько условий, то проверка условий будет выполняться до первого успешного</br>
+        - conditions [Array Objects] - Array of conditions. It iterates until the first fully met condition for the current element
+            - inParentType [Array] - Array of element types. Checks whether the current element is within one of the specified elements
+            - strEquals [Array] - Checks if the string equals the value
+                - strEquals[0] [String] - Checks if the string equals the value (variables can be used)
+                - strEquals[1] [String] - The value to which the string is compared
+            - strContains[Array] - Checks if the string contains a substring
+                - strContains[0] [String] - Checks for the presence of a substring in the string
+                - strContains[1] [String] - The substring
+            - minLevel [Int] - Checks if the current element's level is greater than or equal to the value
+            - maxLevel [Int] - Checks if the current element's level is less than or equal to the value
+            - currentLevel [Int] - Checks if the current element's level is equal to the value
+            - skip [Bool] - Skips the element, i.e., no actions will be performed on it
+            - counterCommands [String] -  string in which counter values can be changed through a simple command
+            - putVar [Array] - Command to save text in a variable
+                - putVar[0] [String] - Create or modify a variable
+                - putVar[1] [String] - The value to be saved (variables can be used)
+            - template [String] - The template that will be applied to the element
+        
+        - template [String] - Default template for the element if all condition blocks are false
+    
+- variables [Object] - Creates variables visible at all levels of the tree. Access them with the prefix  global., for example, #{global.varName}
+    - variables[varName] [String] - The value of the variable
+    
+- counters [Object] - Creates counters with custom settings
+    - counterName [Object] - The name of the counter
+        - start [Int] - Counter start value (default  0)
+        - end [Int] - Counter end value (default null (no end))
+        - increment [Int] - Increment value (default  1)
+        - resetIf [Array Objects] - Describes conditions for automatically resetting the counter. If both levelEquals and  nodeType, are specified, the conditions will work on a cond1 AND cond2 basis
+            - levelEquals [Array] - List of levels where the counter will be reset
+            - nodeType [Array] - List of element types where the counter will be reset
+```
 
-### Модификаторы областей видимости
-Модификаторы областей видимости нунжы для хранения и обращения к различным группам переменных</br>
-Переменные без модификатора и `parent.` живут в пределах одного элемента, т.е. когда элемент обработается, в следующем элементе старые элементы уже не будут доступны (если у этих элементов один родитель, то ничего не изменится в области parent.)</br>
-Переменные `global.` живут на протяжениии всего пробега по дереву, и могут быть вызваны и изменены в любой части дерева, так же как и счетчики</br>
+### Counter Access
+ПExample of how to access counters:</br>
+`#{name(command,format)}` - IMPORTANT! If you don't specify the last two parameters, you must still keep the commas, e.g. `#{name(,)}`</br>
+`name` - The name of the counter</br>
+`command` - The command that determines the counter's return value. By default, getAndAdd is used</br>
+    - get - Get the current counter value</br>
+    - resetAndGet - Reset the counter to its initial value and return the number</br>
+    - getAndAdd - Get the current counter value and then add the increment</br>
+    - addAndGet - Add the increment and then get the current counter value</br>
+`format` - Length alignment, for example, if the counter value is 5 and the format is 03, the returned value will be 005</br>
 
-### Доступные переменные для типов элементов
-Каждому элементу в дереве известны параметры свои и родителя, так же глобальные переменные и создаваемые </br>
-Что бы обратиться к параметрам родителям, нужно использовать модификатор `parent.`, например `parent.name`</br>
-Абсолютно для любого типа элемента доступны переменные #{name} и #{comment}
+### Conditions Block
+Fields in the conditions block are divided into two types: conditions and actions</br>
+Conditions - `inParentType`, `strEquals`, `strContains`, `minLevel`, `maxLevel`, `currentLevel`</br>
+Actions - `skip`, `counterCommands`, `putVar`, `template`, `counterCommands`</br>
+Actions are executed only when all specified conditions are true</br>
+Conditions and actions can be combined in any way, but it's important to note that conditions work on an AND basis, meaning cond AND cond</br>
+In the logs, with the `debugPrintConditionsResult = true`, мflag, you can see that the condition types not specified in the block are marked as true. This is necessary for the logic to work properly</br>
+Actions Description:</br>
+    - `skip` - If true, no actions are performed on the element. Other actions are also not executed</br>
+    - `putVar` - Creates or modifies a variable. Modifiers like `global.`, `parent.`, ....</br>
+    - `template` - The template that will be applied to the element</br>
+    - `counterCommands` - A string where a counter can be invoked (working with counters is described above)</br>
+If there are multiple conditions in the conditions block, the conditions are checked until the first successful one</br>
+
+### Scope Modifiers
+Scope modifiers are used to store and access different groups of variables</br>
+Variables without a modifier and with `parent.` live within the scope of a single element. Once an element is processed, the old variables will no longer be available in the next element (if these elements share the same parent, nothing will change in the `parent.` scope)</br>
+`global.` variables live throughout the entire tree traversal and can be called and modified in any part of the tree, just like counters</br>
+
+### Available Variables for Element Types
+Each element in the tree is aware of its own parameters and those of its parent, as well as global and created variables</br>
+To access a parent's parameters, use the `parent.` modifier, for example, `parent.name.`</br>
+For any element type, the variables #{name} and #{comment} are always available
 
 ## ----- SAMPLERS -----
 ### HTTPSamplerProxy
 `#{protocol}`</br>
 `#{host}`</br>
 `#{path}`</br>
-`#{method}` - метод запроса</br>
-`#{params}` - полная строка параметров имеющихся у запроса</br>
-`#{param.№}` - порядковый номер параметра</br>
+`#{method}` - HTTP method</br>
+`#{params}` - Full string of request parameters</br>
+`#{param.№}` - Parameter by its ordinal number</br>
 
 ### DebugSampler
 `#{jmeterProperties}` - checkbox</br>
@@ -201,63 +217,63 @@ addAndGet - добавить implement, и получить текущее чи�
 `#{isInclude}` - checkbox</br>
 
 ### ModuleController
-`#{selectedElementName}` - название выбраного элемента</br>
+`#{selectedElementName}` - Name of the selected element</br>
 
 ### IfController
-`#{condition}` - строка условия</br>
+`#{condition}` - Condition string</br>
 `#{interpretCondition}` - checkbox</br>
 `#{evaluateForAllChildren}` - checkbox</br>
 
 ### LoopController
-`#{loopString}` - указанная строка в элементе. Если бесконечно, то вернет -1</br>
+`#{loopString}` - String specified in the element. Returns -1 if infinite</br>
 
 ### WhileController
-`#{condition}` - строка условия</br>
+`#{condition}` - Condition string</br>
 
 ### IncludeController
-`#{fullFilename}` - полная строка указанного пути</br>
-`#{filename}` - только название файла</br>
+`#{fullFilename}` - Full string of the specified path</br>
+`#{filename}` - Filename only</br>
 
 ### RunTime
-`#{runtime}` - строка runtime</br>
+`#{runtime}` - Runtime string</br>
 
 ### ThroughputController
-`#{basedOn}` - выбранный стиль</br>
-`#{throughput}` - указанный процент</br>
+`#{basedOn}` - Selected style</br>
+`#{throughput}` - Specified percentage</br>
 `#{perUser}` - checkbox</br>
 
 ### SwitchController
-`#{switchValue}` - указанная строка</br>
+`#{switchValue}` - Specified string</br>
 
 ## ----- POST PROCESSORS -----
 ### JSONPostProcessor
-`#{varName}` - указання переменная для результата</br>
+`#{varName}` - Specified variable for the result</br>
 `#{jsonPath}`</br>
 `#{matchNumber}`</br>
 `#{defaultValue}`</br>
 
 ### JMESPathExtractor
-`#{varName}` - указання переменная для результата</br>
+`#{varName}` - Specified variable for the result</br>
 `#{jmesPath}`</br>
 `#{matchNumber}`</br>
 `#{defaultValue}`</br>
 
 ### BoundaryExtractor
-`#{varName}` - указання переменная для результата</br>
+`#{varName}` - Specified variable for the result</br>
 `#{leftBoundary}`</br>
 `#{rightBoundary}`</br>
 `#{matchNumber}`</br>
 `#{defaultValue}`</br>
 
 ### RegexExtractor
-`#{varName}` - указання переменная для результата</br>
+`#{varName}` - Specified variable for the result</br>
 `#{regex}`</br>
 `#{template}`</br>
 `#{matchNumber}`</br>
 `#{defaultValue}`</br>
 
-## Поддержка проекта
-Если Вы хотите поддержать дальнейшее развитие плагина, вы можете сделать пожертвование 🙃 :
+## Project Support
+If you'd like to support the continued development of the plugin, you can make a donation 🙃:
 - 💳 **Сбербанк**: 2202 2017 2242 4294
 - 🅿️ **[PayPal](https://www.paypal.me/DaniilGolikov)**</br>
-Спасибо за вашу поддержку!
+Thank you for your support!
