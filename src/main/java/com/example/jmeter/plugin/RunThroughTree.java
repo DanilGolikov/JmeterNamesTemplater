@@ -164,8 +164,11 @@ public class RunThroughTree {
 
                 getNodeData("parent.", (JMeterTreeNode) treeNode.getParent(), nodeVariables);
                 getNodeData("", treeNode, nodeVariables);
+                log.debug("Node original name: {}", nodeVariables.get("name"));
+                log.debug("Node type: {}", currentNodeType);
 
                 if (searchBlock != null) {
+                    log.debug("Template before search: {}", template);
                     for (JsonNode searchParam : searchBlock) {
                         JsonNode searchIn = searchParam.get("searchIn");
                         String searchString = shortReplaceVariable.apply(searchIn.get(0).asText());
@@ -180,6 +183,7 @@ public class RunThroughTree {
                         Matcher matcher = pattern.matcher(searchString);
                         String result = searchDefault;
                         if (matcher.find()) {
+                            log.debug("Find substring: {}", matcher.group());
                             for (int i = 1; i <= matcher.groupCount(); i++)
                                 searchTemplate = searchTemplate.replace("$" + i, matcher.group(i));
                             result = searchTemplate;
@@ -187,9 +191,11 @@ public class RunThroughTree {
 
                         shortVarPut.accept(searchOutVar, result);
                     }
+                    log.debug("Template after search: {}", template);
                 }
 
                 if (conditionsBlock != null) {
+                    log.debug("Template before conditions: {}", template);
                     for (JsonNode condition : conditionsBlock) {
                         JsonNode inParentType = condition.get("inParentType");
                         JsonNode strEquals = condition.get("strEquals");
@@ -258,11 +264,13 @@ public class RunThroughTree {
                             break;
                         }
                     }
+                    log.debug("Template after conditions: {}", template);
                 }
 
                 if (template == null)
                     return;
 
+                log.debug("Template before global replace: {}", template);
                 template = shortReplaceVariable.apply(template);
 
                 if (disableJmeterVars == null || disableJmeterVars.asBoolean()) // default = true
@@ -275,14 +283,18 @@ public class RunThroughTree {
                         String replaceReplacement = replacement.get(1).asText();
                         JsonNode replaceNodeType = replacement.get(2);
 
-                        if (replaceNodeType == null)
+                        if (replaceNodeType == null || currentNodeType.equals(replaceNodeType.asText())) {
+                            log.debug("Template before replace block: {}", template);
                             template = template.replaceAll(replaceRegex, replaceReplacement);
-                        else if (currentNodeType.equals(replaceNodeType.asText()))
-                            template = template.replaceAll(replaceRegex, replaceReplacement);
+                            log.debug("Template after replace block: {}", template);
+//                            log.debug("Regex in replace block: {}", replaceRegex);
+//                            log.debug("Replace replacement: {}", replaceReplacement);
+                        }
                     }
 
+                log.debug("Finally template: {}", template);
                 if (!template.equals(nodeVariables.get("name"))) {
-//                log.info("No skipped Jmeter Node\nname: {}\ntemplate: {}\n----------", nodeVariables.get("name"), template);
+                    log.debug("No skipped Jmeter Node | name: {} | template: {}", nodeVariables.get("name"), template);
                     treeNode.setName(template);
                     if (!reloadAllTree)
                         GuiPackage.getInstance().getTreeModel().nodeChanged(treeNode);
@@ -290,6 +302,8 @@ public class RunThroughTree {
             }
         }
 
+        if (!onlyPrint)
+            log.debug("-".repeat(30));
         Enumeration<?> children = treeNode.children();
         while (children.hasMoreElements()) {
             JMeterTreeNode child = (JMeterTreeNode) children.nextElement();

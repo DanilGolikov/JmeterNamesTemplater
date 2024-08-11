@@ -70,9 +70,10 @@ public class RenameUtils {
             String placeHolder = counterMatcher.group();
             String counterName = counterMatcher.group(1);
             String[] counterParams = counterMatcher.group(2).split(",", -1);
-            String counterCommand = counterParams.length > 0 ? counterParams[0] : "getAndAdd";
+            String counterCommand = counterParams.length > 0 ? counterParams[0] : "addAndGet";
             String counterFormat = counterParams.length > 1 ? counterParams[1] : "";
             long counterValue;
+            log.debug("Counter name: {} | counter command: {}", counterName, counterCommand);
 
 //            switch (counterName) {
 //                case "current":
@@ -84,6 +85,7 @@ public class RenameUtils {
 //            }
 
             try {
+                log.debug("Counter value before replace: {}", counters.get(counterName).get());
                 switch (counterCommand) {
                     case "get":
                         counterValue = counters.get(counterName).get();
@@ -91,13 +93,14 @@ public class RenameUtils {
                     case "resetAndGet":
                         counterValue = counters.get(counterName).resetAndGet();
                         break;
-                    case "addAndGet":
-                        counterValue = counters.get(counterName).addAndGet();
-                        break;
                     case "getAndAdd":
-                    default:
                         counterValue = counters.get(counterName).getAndAdd();
+                        break;
+                    case "addAndGet":
+                    default:
+                        counterValue = counters.get(counterName).addAndGet();
                 }
+                log.debug("Counter value after replace: {}", counters.get(counterName).get());
                 str = str.replace(placeHolder, String.format("%" + counterFormat +  "d", counterValue));
             } catch (NullPointerException ignore) {}
         }

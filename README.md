@@ -166,7 +166,7 @@ Example of the file structure:
 ПExample of how to access counters:</br>
 `#{name(command,format)}` - IMPORTANT! If you don't specify the last two parameters, you must still keep the commas, e.g. `#{name(,)}`</br>
 `name` - The name of the counter</br>
-`command` - The command that determines the counter's return value. By default, getAndAdd is used</br>
+`command` - The command that determines the counter's return value. By default, addAndGet is used</br>
     - get - Get the current counter value</br>
     - resetAndGet - Reset the counter to its initial value and return the number</br>
     - getAndAdd - Get the current counter value and then add the increment</br>
@@ -179,7 +179,7 @@ Conditions - `inParentType`, `strEquals`, `strContains`, `minLevel`, `maxLevel`,
 Actions - `skip`, `counterCommands`, `putVar`, `template`, `counterCommands`</br>
 Actions are executed only when all specified conditions are true</br>
 Conditions and actions can be combined in any way, but it's important to note that conditions work on an AND basis, meaning cond AND cond</br>
-In the logs, with the `debugPrintConditionsResult = true`, мflag, you can see that the condition types not specified in the block are marked as true. This is necessary for the logic to work properly</br>
+In the logs, with the `debugPrintConditionsResult = true`, flag, you can see that the condition types not specified in the block are marked as true. This is necessary for the logic to work properly</br>
 Actions Description:</br>
     - `skip` - If true, no actions are performed on the element. Other actions are also not executed</br>
     - `putVar` - Creates or modifies a variable. Modifiers like `global.`, `parent.`, ....</br>

@@ -63,7 +63,7 @@ public class GetNodeData {
             map.put(prefix + "param." + paramIndex++, argument.getValue());
         }
         if (params.length() > 0)
-            params.setLength(params.length() - 1);
+            params.insert(0, '?').setLength(params.length() - 1);
         map.put(prefix + "params", params.toString());
     }
 
