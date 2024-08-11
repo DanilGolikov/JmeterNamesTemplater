@@ -7,6 +7,9 @@ Jmeter Names Templater is a plugin for Jmeter that allows you to set naming temp
 1. Copy the plugin file to the `lib/ext` folder of your Jmeter installation.
 2. Restart Jmeter.
 
+## Configuration Examples
+You can find configuration examples in [README_EXAMPLE.md](README_EXAMPLE.md)
+
 ## Usage
 After installing the jar file, a new button will appear in Jmeter. Each time you press it, the configuration file is re-read
 ![image](https://github.com/user-attachments/assets/a5e3d7ed-a1d9-40ee-affe-6ad2dd78d399)
