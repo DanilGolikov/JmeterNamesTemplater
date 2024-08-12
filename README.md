@@ -14,10 +14,10 @@ You can find configuration examples in [README_EXAMPLE.md](README_EXAMPLE.md)
 After installing the jar file, a new button will appear in Jmeter. Each time you press it, the configuration file is re-read
 ![image](https://github.com/user-attachments/assets/a5e3d7ed-a1d9-40ee-affe-6ad2dd78d399)
 
-After pressing the buttons, the Jmeter logs will also display the element tree, providing additional information about the element's level and type (if the debugEnable flag is set to true)
-`Rename Tree Button` - traverses the tree and starts renaming from the beginning of the Test Plan
-`Rename Selected Tree Button` - starts traversing the tree from the selected element, and only the elements under the selected item will be renamed
-`Print Tree Button` - logs the tree without performing any actions
+After pressing the buttons, the Jmeter logs will also display the element tree, providing additional information about the element's level and type (if the debugEnable flag is set to true)</br>
+`Rename Tree Button` - traverses the tree and starts renaming from the beginning of the Test Plan</br>
+`Rename Selected Tree Button` - starts traversing the tree from the selected element, and only the elements under the selected item will be renamed</br>
+`Print Tree Button` - logs the tree without performing any actions</br>
 Example:
 ```
 2024-07-21 21:05:58,393 INFO c.e.j.p.RunThroughTree: 
@@ -166,7 +166,7 @@ Example of the file structure:
 ```
 
 ### Counter Access
-ПExample of how to access counters:</br>
+Example of how to access counters:</br>
 `#{name(command,format)}` - IMPORTANT! If you don't specify the last two parameters, you must still keep the commas, e.g. `#{name(,)}`</br>
 `name` - The name of the counter</br>
 `command` - The command that determines the counter's return value. By default, addAndGet is used</br>
