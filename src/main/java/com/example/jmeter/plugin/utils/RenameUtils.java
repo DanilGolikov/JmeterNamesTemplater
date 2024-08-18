@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
 
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -28,20 +28,20 @@ public class RenameUtils {
 
     public static void CheckCreateRenameConfig() {
         try {
-            String resName = "rename-config.json";
+            String resName_json = "rename-config.yaml";
             Path destPath = Paths.get(RunThroughTree.class.getProtectionDomain().getCodeSource().getLocation().toURI())
                     .resolve("../../../bin")
                     .normalize()
-                    .resolve(resName);
+                    .resolve(resName_json);
 
             if (Files.notExists(destPath)) {
-                try (InputStream is = RunThroughTree.class.getResourceAsStream("/" + resName)) {
+                try (InputStream is = RunThroughTree.class.getResourceAsStream("/" + resName_json)) {
                     assert is != null;
                     Files.copy(is, destPath, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
-            ObjectMapper mapper = new ObjectMapper();
-            renameConfig = mapper.readTree(new File(destPath.toString()));
+            Map<String, Object> map = new Yaml().load(Files.newInputStream(destPath));
+            renameConfig = new ObjectMapper().valueToTree(map);
             RunThroughTree.renameConfig = renameConfig;
             log.debug(renameConfig.toPrettyString());
 
