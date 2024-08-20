@@ -41,69 +41,59 @@ Example:
 ```
 
 ## Configuration File
-The `renameConfig.json` file is used to describe templates for elements. The configuration file is located in `jmeter/bin/rename-config.json`</br>
+The `renameConfig.yaml` file is used to describe templates for elements. The configuration file is located in `jmeter/bin/rename-config.yaml`</br>
 Example of the file structure:
-```json
-{
-    "debugEnable": true,
-    "reloadAllTree": false,
-    "removeEmptyVars": false,
-    "replace": [
-        ["null_", "", "HTTPSamplerProxy"],
-        ["http_", ""]
-    ],
-    "NodeProperties": {
-        "HTTPSamplerProxy": {
-            "skipDisabled": false,
-            "disableJmeterVars": true,
-            "debugPrintConditionsResult": true,
-            "search": [
-              {
-                "searchIn": ["#{name}", "_(\\d{3})_"],
-                "searchOut": ["global.testGlobalVar_2", "_$1", ""]
-              }
-            ],
-            "conditions": [
-                {
-                    "inParentType": ["ThreadGroup"],
-                    "strEquals": ["#{name}", "#{name}"],
-                    "strContains": ["#{name}", "T"],
-                    "minLevel": 2,
-                    "maxLevel": 4,
-                    "currentLevel": 2,
-                    "skip": false,
-                    "counterCommands": "",
-                    "putVar": ["global.testGlobalVar_2", "test"],
-                    "template": "cond1_#{global.testGlobalVar_2}_#{myCounter(,02)}"
-                }
-            ],
-            "template": "#{global.testGlobalVar_2}_#{myCounter(,02)}_#{protocol}_#{param.3}"
-        }
-    },
-    "variables": {
-        "testGlobalVar_1": "GLOBAL_VAR_1",
-        "testGlobalVar_2": true,
-        "testGlobalVar_3": 999
-    },
-    "counters": {
-        "myCounter": {
-            "start": 1,
-            "end": 3,
-            "increment": 1,
-            "resetIf": [
-                {
-                    "levelEquals": [3],
-                    "nodeType": ["TransactionController", "HTTPSamplerProxy"]
-                }
-            ]
-        },
-        "myCounter2": {
-            "start": 15,
-            "end": 30,
-            "increment": 5
-        }
-    }
-}
+```yaml
+debugEnable: true
+reloadAllTree: false
+removeEmptyVars: false
+
+replace:
+  - ["null_", "", "HTTPSamplerProxy"]
+  - ["http_", ""]
+
+NodeProperties:
+
+  HTTPSamplerProxy:
+    skipDisabled: false
+    disableJmeterVars: true
+    debugPrintConditionsResult: true
+
+    search:
+      - searchIn: ["#{name}", "_(\\d{3})_"]
+        searchOut: ["global.testGlobalVar_2", "_$1", ""]
+
+    conditions:
+      - parentType: ["ThreadGroup"]
+        strEquals: ["#{name}", "#{name}"]
+        strContains: ["#{name}", "T"]
+        minLevel: 2
+        maxLevel: 4
+        currentLevel: 2
+        skip: false
+        setVars: ["global.testGlobalVar_2", "test"]
+        template: "cond1_#{global.testGlobalVar_2}_#{myCounter(,02)}"
+
+    template: "#{global.testGlobalVar_2}_#{myCounter(,02)}_#{protocol}_#{param.3}"
+
+variables:
+  testGlobalVar_1: GLOBAL_VAR_1
+  testGlobalVar_2: true
+  testGlobalVar_3: 999
+
+counters:
+  myCounter:
+    start: 1
+    end: 3
+    increment: 1
+    resetIf:
+      - levelEquals: [3]
+        nodeTypes: ["TransactionController", "HTTPSamplerProxy"]
+
+  myCounter2:
+    start: 15
+    end: 30
+    increment: 5
 ```
 
 ### Configuration File Fields Description
