@@ -28,14 +28,14 @@ public class RenameUtils {
 
     public static void CheckCreateRenameConfig() {
         try {
-            String resName_json = "rename-config.yaml";
+            String resName = "rename-config.yaml";
             Path destPath = Paths.get(RunThroughTree.class.getProtectionDomain().getCodeSource().getLocation().toURI())
                     .resolve("../../../bin")
                     .normalize()
-                    .resolve(resName_json);
+                    .resolve(resName);
 
             if (Files.notExists(destPath)) {
-                try (InputStream is = RunThroughTree.class.getResourceAsStream("/" + resName_json)) {
+                try (InputStream is = RunThroughTree.class.getResourceAsStream("/" + resName)) {
                     assert is != null;
                     Files.copy(is, destPath, StandardCopyOption.REPLACE_EXISTING);
                 }
