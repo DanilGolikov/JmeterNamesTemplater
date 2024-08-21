@@ -1,4 +1,4 @@
-package com.example.jmeter.plugin.gui;
+package dg.jmeter.plugins.templater.gui;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

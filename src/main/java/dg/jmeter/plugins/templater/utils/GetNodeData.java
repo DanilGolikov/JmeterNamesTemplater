@@ -1,4 +1,4 @@
-package com.example.jmeter.plugin.utils;
+package dg.jmeter.plugins.templater.utils;
 
 import org.apache.jmeter.config.Argument;
 import org.apache.jmeter.control.*;

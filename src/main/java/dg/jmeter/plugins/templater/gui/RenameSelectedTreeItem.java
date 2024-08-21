@@ -1,28 +1,24 @@
-package com.example.jmeter.plugin.gui;
+package dg.jmeter.plugins.templater.gui;
 
-import com.example.jmeter.plugin.RunThroughTree;
+import dg.jmeter.plugins.templater.RunThroughTree;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.MainFrame;
 import org.apache.jmeter.gui.util.JMeterToolBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JMenuItem;
-import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
-import javax.swing.JButton;
-
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import static com.example.jmeter.plugin.utils.RenameUtils.CheckCreateRenameConfig;
+import static dg.jmeter.plugins.templater.utils.RenameUtils.CheckCreateRenameConfig;
 
-public class RenameTreeItem extends JMenuItem implements ActionListener {
-    private static final Logger log = LoggerFactory.getLogger(RenameTreeItem.class);
+public class RenameSelectedTreeItem extends JMenuItem implements ActionListener {
+    private static final Logger log = LoggerFactory.getLogger(RenameSelectedTreeItem.class);
 
-    public RenameTreeItem() {
-        super("Rename elements", new ImageIcon(RenameTreeItem.class.getResource("/renameTreeIcon16.png")));
+    public RenameSelectedTreeItem() {
+        super("Rename Selected Tree", new ImageIcon(RenameSelectedTreeItem.class.getResource("/renameSelectedTreeIcon16.png")));
         addActionListener(this);
         addToolbarIcon();
     }
@@ -52,8 +48,8 @@ public class RenameTreeItem extends JMenuItem implements ActionListener {
     }
 
     private Component getToolbarButton() {
-        JButton button = new JButton(new ImageIcon(RenameTreeItem.class.getResource("/renameTreeIcon22.png")));
-        button.setToolTipText("Rename Tree");
+        JButton button = new JButton(new ImageIcon(RenameSelectedTreeItem.class.getResource("/renameSelectedTreeIcon22.png")));
+        button.setToolTipText("Rename Selected Tree");
         button.addActionListener(this);
         return button;
     }
@@ -61,6 +57,6 @@ public class RenameTreeItem extends JMenuItem implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         CheckCreateRenameConfig();
-        new RunThroughTree(false);
+        new RunThroughTree(true);
     }
 }

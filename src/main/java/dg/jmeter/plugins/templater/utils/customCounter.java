@@ -1,4 +1,4 @@
-package com.example.jmeter.plugin.utils;
+package dg.jmeter.plugins.templater.utils;
 
 public class customCounter {
     private long counter;

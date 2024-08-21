@@ -1,6 +1,6 @@
-package com.example.jmeter.plugin.utils;
+package dg.jmeter.plugins.templater.utils;
 
-import com.example.jmeter.plugin.RunThroughTree;
+import dg.jmeter.plugins.templater.RunThroughTree;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

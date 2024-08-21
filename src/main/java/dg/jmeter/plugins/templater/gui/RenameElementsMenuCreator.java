@@ -1,5 +1,6 @@
-package com.example.jmeter.plugin.gui;
+package dg.jmeter.plugins.templater.gui;
 
+import dg.jmeter.plugins.templater.utils.RenameUtils;
 import org.apache.jmeter.gui.plugin.MenuCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,8 +8,6 @@ import org.slf4j.LoggerFactory;
 import javax.swing.JMenuItem;
 import javax.swing.JMenu;
 import javax.swing.MenuElement;
-
-import static com.example.jmeter.plugin.utils.RenameUtils.CheckCreateRenameConfig;
 
 
 public class RenameElementsMenuCreator implements MenuCreator {
@@ -18,7 +17,7 @@ public class RenameElementsMenuCreator implements MenuCreator {
     public JMenuItem[] getMenuItemsAtLocation(MENU_LOCATION menuLocation) {
         if (menuLocation == MenuCreator.MENU_LOCATION.RUN)
             try {
-                CheckCreateRenameConfig();
+                RenameUtils.CheckCreateRenameConfig();
                 return new JMenuItem[] {new PrintTreeItem() ,new RenameSelectedTreeItem(), new RenameTreeItem()};
             } catch (Throwable e) {
                 log.error("Failed to load rename elements", e);

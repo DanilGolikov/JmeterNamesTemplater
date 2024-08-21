@@ -1,6 +1,6 @@
-package com.example.jmeter.plugin;
+package dg.jmeter.plugins.templater;
 
-import com.example.jmeter.plugin.utils.customCounter;
+import dg.jmeter.plugins.templater.utils.customCounter;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeModel;
@@ -19,8 +19,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
 
-import static com.example.jmeter.plugin.utils.GetNodeData.*;
-import static com.example.jmeter.plugin.utils.RenameUtils.replaceVariables;
+import static dg.jmeter.plugins.templater.utils.GetNodeData.*;
+import static dg.jmeter.plugins.templater.utils.RenameUtils.replaceVariables;
 
 
 public class RunThroughTree {

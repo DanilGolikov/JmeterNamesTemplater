@@ -1,6 +1,6 @@
-package com.example.jmeter.plugin.gui;
+package dg.jmeter.plugins.templater.gui;
 
-import com.example.jmeter.plugin.RunThroughTree;
+import dg.jmeter.plugins.templater.RunThroughTree;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.MainFrame;
 import org.apache.jmeter.gui.util.JMeterToolBar;
@@ -12,7 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import static com.example.jmeter.plugin.utils.RenameUtils.CheckCreateRenameConfig;
+import static dg.jmeter.plugins.templater.utils.RenameUtils.CheckCreateRenameConfig;
 
 public class PrintTreeItem extends JMenuItem implements ActionListener {
     private static final Logger log = LoggerFactory.getLogger(PrintTreeItem.class);
