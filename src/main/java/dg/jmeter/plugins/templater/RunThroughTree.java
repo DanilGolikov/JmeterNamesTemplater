@@ -176,8 +176,8 @@ public class RunThroughTree {
 
                         JsonNode searchOut = searchParam.get("searchOut");
                         String searchOutVar = searchOut.get(0).asText();
-                        String searchTemplate = searchOut.get(1).asText();
-                        String searchDefault = searchOut.get(2).asText();
+                        String searchTemplate = shortReplaceVariable.apply(searchOut.get(1).asText());
+                        String searchDefault = shortReplaceVariable.apply(searchOut.get(2).asText());
 
                         Pattern pattern = Pattern.compile(searchRegex);
                         Matcher matcher = pattern.matcher(searchString);

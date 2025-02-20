@@ -4,6 +4,7 @@ import dg.jmeter.plugins.templater.RunThroughTree;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.jmeter.services.FileServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -29,10 +30,17 @@ public class RenameUtils {
     public static void CheckCreateRenameConfig() {
         try {
             String resName = "rename-config.yaml";
-            Path destPath = Paths.get(RunThroughTree.class.getProtectionDomain().getCodeSource().getLocation().toURI())
-                    .resolve("../../../bin")
-                    .normalize()
-                    .resolve(resName);
+//            Path destPath = Paths.get(RunThroughTree.class.getProtectionDomain().getCodeSource().getLocation().toURI())
+//                    .resolve("../../../bin")
+//                    .normalize()
+//                    .resolve(resName);
+
+//            Path destPath = Paths.get(System.getProperty("user.dir"), resName);
+
+
+            Path destPath = Path.of(FileServer.getFileServer().getBaseDir() + "/" + resName);
+
+
 
             if (Files.notExists(destPath)) {
                 try (InputStream is = RunThroughTree.class.getResourceAsStream("/" + resName)) {
@@ -46,7 +54,7 @@ public class RenameUtils {
             log.debug(renameConfig.toPrettyString());
 
 
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException e) {
             log.error(e.toString());
         }
     }

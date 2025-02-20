@@ -5,7 +5,7 @@
 
     <groupId>dg.jmeter.plugins</groupId>
     <artifactId>jmeter-plugins-names-templater</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
 
     <properties>
         <jmeter.version>5.5</jmeter.version>
